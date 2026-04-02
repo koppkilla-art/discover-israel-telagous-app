@@ -3,259 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Israel & Jordan Expedition</title>
+    <title>Israel Discovery</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
         :root { 
             --primary: #0038b8; 
-            --accent: #ffd700;
-            --locked: #777; 
-            --unlocked: #27ae60; 
-            --danger: #c0392b; 
-            --white: #ffffff;
+            --bg: #f8f9fa; 
+            --text: #1a1a1a; 
+            --card-bg: #ffffff;
+            --accent: #27ae60;
         }
 
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            margin: 0; display: flex; flex-direction: column; height: 100vh; background: #f4f4f4; overflow: hidden; 
-        }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: "Inter", -apple-system, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
-        /* Header & Menu Icon */
+        /* --- TOP NAVIGATION / PROFILE --- */
         header { 
-            background: var(--primary); color: white; padding: 12px; text-align: center; 
-            z-index: 1001; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 20px; background: white; position: sticky; top: 0; z-index: 1000;
         }
-        header h1 { margin: 0; font-size: 1.1rem; letter-spacing: 1px; }
-
-        #menu-btn { 
-            position: absolute; left: 15px; top: 10px; font-size: 24px; cursor: pointer; color: white; 
-        }
-
-        /* Sidebar Navigation */
-        #side-menu {
-            position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
-            background: var(--white); z-index: 3000; transition: 0.3s ease;
-            box-shadow: 5px 0 15px rgba(0,0,0,0.2); display: flex; flex-direction: column;
-        }
-        #side-menu.open { left: 0; }
-        .menu-head { background: var(--primary); color: white; padding: 30px 20px; }
-        .menu-nav a { 
-            display: block; padding: 15px 20px; color: #333; text-decoration: none; 
-            border-bottom: 1px solid #eee; font-weight: 500; 
-        }
-        .menu-nav a:active { background: #f0f0f0; }
-
-        /* Dashboard Controls */
-        .controls { 
-            background: white; padding: 8px 12px; display: grid; grid-template-columns: 1fr 1fr; 
-            gap: 10px; border-bottom: 1px solid #ddd; z-index: 1000; 
-        }
-        .control-item label { display: block; font-size: 10px; font-weight: bold; color: #888; margin-bottom: 2px; }
-        select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; background: #fff; }
-
-        /* Map Section */
-        #map { flex-grow: 1; width: 100%; z-index: 1; }
-
-        /* Information Panel */
-        #details-panel { 
-            position: fixed; bottom: 0; left: 0; right: 0; background: white; 
-            height: 60vh; overflow-y: auto; padding: 20px; border-top: 5px solid var(--primary);
-            z-index: 2000; box-shadow: 0 -5px 25px rgba(0,0,0,0.3); display: none;
-            border-radius: 20px 20px 0 0;
-        }
-        .close-panel { float: right; background: #eee; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; }
-
-        /* Image Handling */
-        .img-box { width: 100%; height: 220px; overflow: hidden; border-radius: 12px; margin: 15px 0; position: relative; background: #000; }
-        .location-img { width: 100%; height: 100%; object-fit: cover; }
-        .lock-blur { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; 
-            color: white; font-weight: bold; backdrop-filter: blur(5px);
+        .logo-text { font-weight: 800; font-size: 1.2rem; color: var(--primary); letter-spacing: -0.5px; }
+        .profile-icon { 
+            width: 35px; height: 35px; background: #ddd; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer;
         }
 
-        /* Overlays for Home/Mission/Contact */
-        .full-page-overlay {
+        /* --- SEARCH & FILTER --- */
+        .search-container { padding: 10px 20px; background: white; }
+        .search-bar { 
+            width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid #eee; 
+            background: #f1f3f5; font-size: 14px; outline: none;
+        }
+        .filter-scroll { 
+            display: flex; overflow-x: auto; padding: 15px 20px; gap: 10px; 
+            scrollbar-width: none; background: white;
+        }
+        .filter-chip { 
+            padding: 8px 18px; background: #eee; border-radius: 20px; 
+            white-space: nowrap; font-size: 13px; font-weight: 600; cursor: pointer;
+        }
+        .filter-chip.active { background: var(--primary); color: white; }
+
+        /* --- CONTENT PAGES --- */
+        .page { height: calc(100vh - 180px); overflow-y: auto; padding-bottom: 80px; }
+        .hidden { display: none !important; }
+
+        /* --- CATALOG CARDS --- */
+        .adventure-grid { padding: 0 20px; }
+        .adventure-card { 
+            background: var(--card-bg); border-radius: 15px; overflow: hidden; 
+            margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+        }
+        .card-img { width: 100%; height: 180px; object-fit: cover; }
+        .card-info { padding: 15px; }
+        .card-tag { font-size: 10px; font-weight: bold; color: var(--accent); text-transform: uppercase; }
+        .card-title { margin: 5px 0; font-size: 16px; font-weight: 700; }
+        .card-meta { font-size: 12px; color: #777; }
+
+        /* --- MAP PAGE --- */
+        #map { height: 100%; width: 100%; }
+
+        /* --- BOTTOM NAVIGATION PANE --- */
+        .bottom-nav { 
+            position: fixed; bottom: 0; width: 100%; background: white; 
+            display: flex; justify-content: space-around; padding: 12px 0;
+            border-top: 1px solid #eee; z-index: 5000;
+        }
+        .nav-item { text-align: center; color: #999; cursor: pointer; flex: 1; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
+        .nav-item span { font-size: 10px; font-weight: 600; }
+
+        /* --- DETAIL OVERLAY --- */
+        #detail-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 4000; display: none; overflow-y: auto; padding: 40px 20px;
-            box-sizing: border-box;
+            background: white; z-index: 6000; display: none; overflow-y: auto;
         }
-        .page-content { line-height: 1.6; color: #333; max-width: 600px; margin: auto; }
-
-        /* Pins */
-        .custom-pin { width: 22px; height: 22px; border-radius: 50%; background: var(--locked); border: 3px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.3); }
-        .custom-pin.active { background: var(--unlocked); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(39, 174, 96, 0.5); } 70% { box-shadow: 0 0 0 12px rgba(39, 174, 96, 0); } 100% { box-shadow: 0 0 0 0px rgba(39, 174, 96, 0); } }
     </style>
 </head>
 <body>
 
 <header>
-    <div id="menu-btn" onclick="toggleMenu()">☰</div>
-    <h1>ISRAEL EXPEDITION</h1>
+    <div class="logo-text">EXPEDITION</div>
+    <div class="profile-icon" onclick="alert('Profile Settings')">👤</div>
 </header>
 
-<div class="controls">
-    <div class="control-item">
-        <label>ADMIN OVERRIDE</label>
-        <select id="admin-trigger" onchange="unlockLocation(this.value)">
-            <option value="">Unlock a Site...</option>
-        </select>
+<div id="page-home" class="page">
+    <div class="search-container">
+        <input type="text" class="search-bar" placeholder="Search routes, days, or experiences...">
     </div>
-    <div class="control-item">
-        <label>VISITED SITES</label>
-        <select id="user-log" onchange="showContent(this.value)">
-            <option value="">Journal...</option>
-        </select>
+    <div class="filter-scroll">
+        <div class="filter-chip active">All Adventures</div>
+        <div class="filter-chip">Galilee</div>
+        <div class="filter-chip">Judean Desert</div>
+        <div class="filter-chip">Jerusalem</div>
+        <div class="filter-chip">7-Day Routes</div>
+    </div>
+
+    <div class="adventure-grid" id="catalog">
+        </div>
+</div>
+
+<div id="page-map" class="page hidden">
+    <div id="map"></div>
+</div>
+
+<div class="bottom-nav">
+    <div class="nav-item active" onclick="switchPage('home', this)">
+        <i>🏠</i><span>Home</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('map', this)">
+        <i>📍</i><span>Map</span>
+    </div>
+    <div class="nav-item" onclick="alert('My Bookings')">
+        <i>📅</i><span>Trips</span>
+    </div>
+    <div class="nav-item" onclick="alert('Support')">
+        <i>💬</i><span>Support</span>
     </div>
 </div>
 
-<div id="map"></div>
-
-<div id="side-menu">
-    <div class="menu-head">
-        <h2>Expedition Menu</h2>
-        <p style="font-size: 12px; opacity: 0.8;">Explore the Holy Land</p>
-    </div>
-    <nav class="menu-nav">
-        <a href="#" onclick="showExtra('home')">🏠 Home & Map</a>
-        <a href="#" onclick="showExtra('mission')">📜 Our Mission</a>
-        <a href="#" onclick="showExtra('ministries')">🤝 Affiliate Ministries</a>
-        <a href="#" onclick="showExtra('contact')">📧 Contact Us</a>
-        <a href="#" onclick="resetTour()" style="color:var(--danger)">🔄 Reset Journey</a>
-    </nav>
-</div>
-
-<div id="page-overlay" class="full-page-overlay">
-    <button class="close-panel" onclick="hideExtra()">✕ Back to Map</button>
-    <div id="page-inner" class="page-content"></div>
-</div>
-
-<div id="details-panel">
-    <button class="close-panel" onclick="closeDetails()">✕</button>
-    <div id="status-label" style="font-size: 12px; font-weight: bold; margin-bottom: 5px;"></div>
-    <h2 id="detail-title" style="margin: 0; color: var(--primary);"></h2>
-    
-    <div class="img-box">
-        <img id="detail-img" class="location-img" src="">
-        <div id="lock-screen" class="lock-blur">🔒 CONTENT LOCKED</div>
-    </div>
-
-    <p id="detail-desc" style="color: #444; line-height: 1.6;"></p>
+<div id="detail-overlay">
+    <button onclick="closeDetail()" style="margin: 20px; padding: 10px 20px; border-radius: 10px; border: none; background: var(--primary); color: white;">✕ Back</button>
+    <div id="detail-view-content" style="padding: 20px;"></div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // --- 1. DATA DATABASE ---
-    const tourData = {
-        'jerusalem': { 
-            name: 'Jerusalem', coords: [31.7683, 35.2137], 
-            teaser: 'The spiritual heart of the world and the eternal city of gold.', 
-            full: 'Jerusalem is the spiritual epicenter for billions. Within its ancient walls lie the Western Wall, the Dome of the Rock, and the Church of the Holy Sepulchre. This location served as the focal point of Jesus’s final week and is the site of the First and Second Temples. It is a city where every stone tells a story of thousands of years of biblical prophecy.', 
-            img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Jerusalem-1712855.jpg/1920px-Jerusalem-1712855.jpg' 
-        },
-        'capernaum': { 
-            name: 'Capernaum', coords: [32.8807, 35.5752], 
-            teaser: 'The fishing village that served as Jesus’s base in the Galilee.', 
-            full: 'Known as the "Town of Jesus," Capernaum was a thriving 1st-century fishing hub. It is home to the ruins of a majestic 4th-century synagogue built over the limestone foundations where Jesus taught. Excavations have also revealed the house of Peter, now preserved under a glass-bottomed church. It remains one of the most significant archaeological sites in the Galilee.', 
-            img: 'https://www.robertharding.com/watermark.php?type=preview&im=RM/RH/HORIZONTAL/837-301' 
-        },
-        'sea-of-galilee': { 
-            name: 'Sea of Galilee', coords: [32.82, 35.58], 
-            teaser: 'The famous freshwater lake where the disciples were called.', 
-            full: 'The Kinneret is the lowest freshwater lake on Earth. It provided the livelihood for Peter, Andrew, James, and John and was the setting for walking on water and calming the storm. Today, it remains the primary water source for Israel and a place of profound peace. The surrounding hills witnessed the Sermon on the Mount and the feeding of the five thousand.', 
-            img: 'https://t3.ftcdn.net/jpg/03/69/05/72/240_F_369057264_a5er9njmAxMoZCqfqBIzwDG36rusrq2I.jpg' 
+    // Adventure Data Catalog
+    const adventures = [
+        { id: 'galilee', tag: '3 DAYS', title: 'The Way of the Galilee', meta: 'Capernaum • Magdala • Sea of Galilee', img: 'https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=600' },
+        { id: 'desert', tag: '1 DAY', title: 'Judean Wilderness Escape', meta: 'En-Gedi • Jericho Road • Dead Sea', img: 'https://images.unsplash.com/photo-1590422941893-6a9787e95b05?w=600' },
+        { id: 'jerusalem', tag: '5 DAYS', title: 'Eternal Jerusalem Deep-Dive', meta: 'Temple Mount • Mt of Olives • Old City', img: 'https://images.unsplash.com/photo-1547039916-d007c030307e?w=600' }
+    ];
+
+    let map;
+
+    // Load Catalog
+    function loadCatalog() {
+        const container = document.getElementById('catalog');
+        adventures.forEach(adv => {
+            const card = document.createElement('div');
+            card.className = 'adventure-card';
+            card.onclick = () => openAdventure(adv);
+            card.innerHTML = `
+                <img src="${adv.img}" class="card-img">
+                <div class="card-info">
+                    <span class="card-tag">${adv.tag}</span>
+                    <h3 class="card-title">${adv.title}</h3>
+                    <p class="card-meta">${adv.meta}</p>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // Navigation Logic
+    function switchPage(pageId, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+        document.getElementById('page-' + pageId).classList.remove('hidden');
+        
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        el.classList.add('active');
+
+        if(pageId === 'map') {
+            setTimeout(initMap, 100); // Small delay to ensure container is visible
         }
-        // Add all other 17 locations here following this pattern
-    };
-
-    const extraContent = {
-        'mission': `<h1>Our Mission</h1><p>We are dedicated to providing a transformative experience that connects modern travelers to the ancient steps of biblical history.</p><p>By blending geography, archaeology, and scripture, we aim to make the Word of God come alive in the very places where history was made.</p>`,
-        'ministries': `<h1>Affiliate Ministries</h1><p>We work alongside several local and international organizations:</p><ul><li><b>Galilee Heritage:</b> Focused on preserving 1st-century synagogues.</li><li><b>Judean Wilderness Project:</b> Environmental protection for biblical nature reserves.</li></ul>`,
-        'contact': `<h1>Contact Us</h1><p><b>Email:</b> info@israelexpedition.com</p><p><b>Phone:</b> +1-800-TOUR-HL</p><p>Our team is available 24/7 during active tour dates.</p>`
-    };
-
-    // --- 2. LOGIC & STATE ---
-    let map, markers = {}, unlocked = JSON.parse(localStorage.getItem('expMemory')) || [];
+    }
 
     function initMap() {
-        // Map restricted to Israel/Jordan
-        map = L.map('map', { zoomControl: false, maxBounds: [[29.0, 33.5], [33.5, 36.5]] }).setView([31.8, 35.3], 8);
+        if(map) { map.invalidateSize(); return; }
+        map = L.map('map').setView([32.0, 35.0], 8);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-
-        const adminSelect = document.getElementById('admin-trigger');
-        for (const key in tourData) {
-            const loc = tourData[key];
-            const isUnlocked = unlocked.includes(key);
-            
-            const icon = L.divIcon({ 
-                className: '', html: `<div id="pin-${key}" class="custom-pin ${isUnlocked ? 'active' : ''}"></div>`, iconSize: [22, 22] 
-            });
-
-            const marker = L.marker(loc.coords, { icon: icon }).addTo(map);
-            marker.on('click', (e) => { L.DomEvent.stopPropagation(e); showContent(key); });
-            markers[key] = marker;
-
-            let opt = document.createElement('option'); opt.value = key; opt.innerText = loc.name; adminSelect.appendChild(opt);
-        }
-        updateLogDropdown();
     }
 
-    function unlockLocation(key) {
-        if(!key) return;
-        if(!unlocked.includes(key)) {
-            unlocked.push(key);
-            localStorage.setItem('expMemory', JSON.stringify(unlocked));
-        }
-        document.getElementById(`pin-${key}`).classList.add('active');
-        updateLogDropdown();
-        showContent(key);
-        map.flyTo(tourData[key].coords, 14);
+    function openAdventure(adv) {
+        const overlay = document.getElementById('detail-overlay');
+        const content = document.getElementById('detail-view-content');
+        content.innerHTML = `
+            <img src="${adv.img}" style="width:100%; border-radius:15px;">
+            <h1>${adv.title}</h1>
+            <p>${adv.meta}</p>
+            <hr>
+            <p>This experience is currently being finalized. Once booked, this adventure will populate your interactive map with GPS triggers.</p>
+        `;
+        overlay.style.display = 'block';
     }
 
-    function showContent(key) {
-        const loc = tourData[key];
-        const isUnlocked = unlocked.includes(key);
-        
-        document.getElementById('detail-title').innerText = loc.name;
-        document.getElementById('detail-img').src = loc.img;
-        
-        if(isUnlocked) {
-            document.getElementById('status-label').innerHTML = "<span style='color:var(--unlocked)'>✓ ARRIVED</span>";
-            document.getElementById('detail-desc').innerText = loc.full;
-            document.getElementById('lock-screen').style.display = 'none';
-        } else {
-            document.getElementById('status-label').innerHTML = "<span style='color:var(--locked)'>🔒 LOCKED</span>";
-            document.getElementById('detail-desc').innerHTML = `<i>${loc.teaser}</i><br><br><small>Reach this location to unlock the full summary.</small>`;
-            document.getElementById('lock-screen').style.display = 'flex';
-        }
-        document.getElementById('details-panel').style.display = 'block';
+    function closeDetail() {
+        document.getElementById('detail-overlay').style.display = 'none';
     }
 
-    // --- 3. MENU & NAVIGATION ---
-    function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
-
-    function showExtra(page) {
-        toggleMenu();
-        if(page === 'home') { hideExtra(); return; }
-        document.getElementById('page-inner').innerHTML = extraContent[page];
-        document.getElementById('page-overlay').style.display = 'block';
-    }
-
-    function hideExtra() { document.getElementById('page-overlay').style.display = 'none'; }
-    function closeDetails() { document.getElementById('details-panel').style.display = 'none'; }
-    
-    function updateLogDropdown() {
-        const log = document.getElementById('user-log');
-        log.innerHTML = '<option value="">Journal...</option>';
-        unlocked.forEach(k => { let o = document.createElement('option'); o.value = k; o.innerText = tourData[k].name; log.appendChild(o); });
-    }
-
-    function resetTour() { if(confirm("Reset journey history?")) { localStorage.clear(); location.reload(); } }
-
-    window.onload = initMap;
+    window.onload = loadCatalog;
 </script>
 </body>
 </html>
