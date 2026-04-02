@@ -3,199 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Israel Discovery</title>
+    <title>Israel Discovery | Sacred Steps</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <style>
-        :root { 
-            --primary: #0038b8; 
-            --bg: #f8f9fa; 
-            --text: #1a1a1a; 
-            --card-bg: #ffffff;
-            --accent: #27ae60;
-        }
+    <base href="./"> <style>
+        :root { --primary: #0038b8; --bg: #f8f9fa; --white: #ffffff; --text: #1a1a1a; --accent: #27ae60; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
-        body, html { margin: 0; padding: 0; height: 100%; font-family: "Inter", -apple-system, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
-
-        /* --- TOP NAVIGATION / PROFILE --- */
-        header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 15px 20px; background: white; position: sticky; top: 0; z-index: 1000;
-        }
-        .logo-text { font-weight: 800; font-size: 1.2rem; color: var(--primary); letter-spacing: -0.5px; }
-        .profile-icon { 
-            width: 35px; height: 35px; background: #ddd; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer;
-        }
-
-        /* --- SEARCH & FILTER --- */
-        .search-container { padding: 10px 20px; background: white; }
-        .search-bar { 
-            width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid #eee; 
-            background: #f1f3f5; font-size: 14px; outline: none;
-        }
-        .filter-scroll { 
-            display: flex; overflow-x: auto; padding: 15px 20px; gap: 10px; 
-            scrollbar-width: none; background: white;
-        }
-        .filter-chip { 
-            padding: 8px 18px; background: #eee; border-radius: 20px; 
-            white-space: nowrap; font-size: 13px; font-weight: 600; cursor: pointer;
-        }
-        .filter-chip.active { background: var(--primary); color: white; }
-
-        /* --- CONTENT PAGES --- */
-        .page { height: calc(100vh - 180px); overflow-y: auto; padding-bottom: 80px; }
+        /* Navigation Components */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border-bottom: 1px solid #eee; z-index: 1000; }
+        .app-title { font-weight: 800; font-size: 1.1rem; color: var(--primary); }
+        
+        .page { height: calc(100vh - 140px); overflow-y: auto; padding: 20px; box-sizing: border-box; }
         .hidden { display: none !important; }
 
-        /* --- CATALOG CARDS --- */
-        .adventure-grid { padding: 0 20px; }
-        .adventure-card { 
-            background: var(--card-bg); border-radius: 15px; overflow: hidden; 
-            margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-        }
-        .card-img { width: 100%; height: 180px; object-fit: cover; }
-        .card-info { padding: 15px; }
-        .card-tag { font-size: 10px; font-weight: bold; color: var(--accent); text-transform: uppercase; }
-        .card-title { margin: 5px 0; font-size: 16px; font-weight: 700; }
-        .card-meta { font-size: 12px; color: #777; }
+        /* Catalog Cards */
+        .card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; cursor: pointer; border: 1px solid #eee; }
+        .card img { width: 100%; height: 180px; object-fit: cover; }
+        .card-content { padding: 15px; }
 
-        /* --- MAP PAGE --- */
+        /* Map UI */
         #map { height: 100%; width: 100%; }
 
-        /* --- BOTTOM NAVIGATION PANE --- */
-        .bottom-nav { 
-            position: fixed; bottom: 0; width: 100%; background: white; 
-            display: flex; justify-content: space-around; padding: 12px 0;
-            border-top: 1px solid #eee; z-index: 5000;
-        }
-        .nav-item { text-align: center; color: #999; cursor: pointer; flex: 1; }
-        .nav-item.active { color: var(--primary); }
-        .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
-        .nav-item span { font-size: 10px; font-weight: 600; }
+        /* Bottom Tab Bar */
+        .tab-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; padding: 10px 0 25px 0; border-top: 1px solid #eee; z-index: 5000; }
+        .tab-item { flex: 1; text-align: center; color: #aaa; font-size: 10px; font-weight: 600; cursor: pointer; }
+        .tab-item.active { color: var(--primary); }
+        .tab-icon { font-size: 20px; display: block; }
 
-        /* --- DETAIL OVERLAY --- */
-        #detail-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 6000; display: none; overflow-y: auto;
-        }
+        /* Contact Form Styling */
+        .contact-form input, .contact-form textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        .submit-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+        /* Info Slide-up */
+        #info-panel { position: fixed; bottom: 0; left: 0; right: 0; background: white; height: 50vh; z-index: 6000; border-radius: 25px 25px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.1); display: none; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo-text">DISCOVER ISRAEL</div>
-    <div class="profile-icon" onclick="alert('Profile Settings')">👤</div>
+    <div class="app-title">SACRED STEPS</div>
+    <div style="font-size: 1.2rem;">👤</div>
 </header>
 
 <div id="page-home" class="page">
-    <div class="search-container">
-        <input type="text" class="search-bar" placeholder="Search routes, days, or experiences...">
-    </div>
-    <div class="filter-scroll">
-        <div class="filter-chip active">Discover All</div>
-        <div class="filter-chip">Galilee</div>
-        <div class="filter-chip">Judean Desert</div>
-        <div class="filter-chip">Jerusalem</div>
-        <div class="filter-chip">7-Day Routes</div>
-    </div>
-
-    <div class="adventure-grid" id="catalog">
+    <h2 style="margin-top:0;">My Adventures</h2>
+    <div class="card" onclick="activateTrip('galilee')">
+        <img src="assets/images/sea-of-galilee.jpg" alt="Galilee">
+        <div class="card-content">
+            <span style="color:var(--accent); font-size:10px; font-weight:bold;">ACTIVE NOW</span>
+            <h3 style="margin:5px 0;">The Way of the Galilee</h3>
+            <p style="font-size:12px; color:#666; margin:0;">3 Days • 4 Locations Unlocked</p>
         </div>
+    </div>
 </div>
 
-<div id="page-map" class="page hidden">
+<div id="page-map" class="page hidden" style="padding:0;">
     <div id="map"></div>
 </div>
 
-<div class="bottom-nav">
-    <div class="nav-item active" onclick="switchPage('home', this)">
-        <i>🏠</i><span>Home</span>
+<div id="page-contact" class="page hidden">
+    <h2>Contact Us</h2>
+    <p style="color:#666; margin-bottom:20px;">Questions about the tour? Send us a message.</p>
+    
+    <form action="https://formspree.io/f/your-form-id" method="POST" class="contact-form">
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="email" name="email" placeholder="Your Email" required>
+        <textarea name="message" rows="4" placeholder="How can we help?" required></textarea>
+        <button type="submit" class="submit-btn">Send Message</button>
+    </form>
+</div>
+
+<div class="tab-bar">
+    <div class="tab-item active" onclick="nav('home', this)">
+        <span class="tab-icon">🏠</span>Home
     </div>
-    <div class="nav-item" onclick="switchPage('map', this)">
-        <i>📍</i><span>Map</span>
+    <div class="tab-item" onclick="nav('map', this)">
+        <span class="tab-icon">📍</span>Map
     </div>
-    <div class="nav-item" onclick="alert('My Bookings')">
-        <i>📅</i><span>Trips</span>
-    </div>
-    <div class="nav-item" onclick="alert('Support')">
-        <i>💬</i><span>Support</span>
+    <div class="tab-item" onclick="nav('contact', this)">
+        <span class="tab-icon">📧</span>Contact
     </div>
 </div>
 
-<div id="detail-overlay">
-    <button onclick="closeDetail()" style="margin: 20px; padding: 10px 20px; border-radius: 10px; border: none; background: var(--primary); color: white;">✕ Back</button>
-    <div id="detail-view-content" style="padding: 20px;"></div>
+<div id="info-panel">
+    <button onclick="document.getElementById('info-panel').style.display='none'" style="float:right; border:none; background:#eee; border-radius:50%; width:30px; height:30px;">✕</button>
+    <h2 id="info-title" style="margin:0 0 10px 0; color:var(--primary);"></h2>
+    <img id="info-img" src="" style="width:100%; height:160px; object-fit:cover; border-radius:15px; margin-bottom:15px;">
+    <p id="info-desc" style="font-size:14px; line-height:1.5; color:#444;"></p>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Adventure Data Catalog
-    const adventures = [
-        { id: 'galilee', tag: '3 DAYS', title: 'The Way of the Galilee', meta: 'Capernaum • Magdala • Sea of Galilee', img: 'https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=600' },
-        { id: 'desert', tag: '4 DAY', title: 'Judean Wilderness Escape', meta: 'En-Gedi • Jericho Road • Dead Sea', img: 'https://images.unsplash.com/photo-1590422941893-6a9787e95b05?w=600' },
-        { id: 'jerusalem', tag: '5 DAYS', title: 'Eternal Jerusalem Deep-Dive', meta: 'Temple Mount • Mt of Olives • Old City', img: 'https://images.unsplash.com/photo-1547039916-d007c030307e?w=600' }
-    ];
+    const tourData = {
+        'jerusalem': { name: 'Jerusalem', coords: [31.768, 35.213], desc: 'The spiritual heart of the world, home to thousands of years of biblical history.', img: 'assets/images/jerusalem.jpg' },
+        'capernaum': { name: 'Capernaum', coords: [32.880, 35.575], desc: 'Jesus\'s base of operations in Galilee. Explore the ancient synagogue ruins.', img: 'assets/images/capernaum.jpg' },
+        'sea-of-galilee': { name: 'Sea of Galilee', coords: [32.82, 35.58], desc: 'The freshwater lake where Jesus walked on water and called his disciples.', img: 'assets/images/sea-of-galilee.jpg' },
+        'magdala': { name: 'Magdala', coords: [32.830, 35.526], desc: 'Home of Mary Magdalene, featuring an incredibly preserved 1st-century synagogue.', img: 'assets/images/magdala.jpg' },
+        'en-gedi': { name: 'En-Gedi', coords: [31.455, 35.388], desc: 'The desert oasis where David hid from King Saul among the springs.', img: 'assets/images/en-gedi.jpg' }
+    };
 
     let map;
 
-    // Load Catalog
-    function loadCatalog() {
-        const container = document.getElementById('catalog');
-        adventures.forEach(adv => {
-            const card = document.createElement('div');
-            card.className = 'adventure-card';
-            card.onclick = () => openAdventure(adv);
-            card.innerHTML = `
-                <img src="${adv.img}" class="card-img">
-                <div class="card-info">
-                    <span class="card-tag">${adv.tag}</span>
-                    <h3 class="card-title">${adv.title}</h3>
-                    <p class="card-meta">${adv.meta}</p>
-                </div>
-            `;
-            container.appendChild(card);
-        });
-    }
-
-    // Navigation Logic
-    function switchPage(pageId, el) {
+    function nav(pageId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
         document.getElementById('page-' + pageId).classList.remove('hidden');
-        
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
-
-        if(pageId === 'map') {
-            setTimeout(initMap, 100); // Small delay to ensure container is visible
-        }
+        if(pageId === 'map') setTimeout(initMap, 100);
     }
 
     function initMap() {
         if(map) { map.invalidateSize(); return; }
-        map = L.map('map').setView([32.0, 35.0], 8);
+        map = L.map('map', { zoomControl: false }).setView([31.8, 35.3], 8);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+
+        for (let key in tourData) {
+            let loc = tourData[key];
+            L.marker(loc.coords).addTo(map).on('click', () => showInfo(loc));
+        }
     }
 
-    function openAdventure(adv) {
-        const overlay = document.getElementById('detail-overlay');
-        const content = document.getElementById('detail-view-content');
-        content.innerHTML = `
-            <img src="${adv.img}" style="width:100%; border-radius:15px;">
-            <h1>${adv.title}</h1>
-            <p>${adv.meta}</p>
-            <hr>
-            <p>This experience is currently being finalized. Once booked, this adventure will populate your interactive map with GPS triggers.</p>
-        `;
-        overlay.style.display = 'block';
+    function showInfo(loc) {
+        document.getElementById('info-title').innerText = loc.name;
+        document.getElementById('info-desc').innerText = loc.desc;
+        document.getElementById('info-img').src = loc.img;
+        document.getElementById('info-panel').style.display = 'block';
     }
 
-    function closeDetail() {
-        document.getElementById('detail-overlay').style.display = 'none';
+    function activateTrip(trip) {
+        nav('map', document.querySelectorAll('.tab-item')[1]);
     }
-
-    window.onload = loadCatalog;
 </script>
 </body>
 </html>
