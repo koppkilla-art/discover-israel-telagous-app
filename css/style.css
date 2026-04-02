@@ -1,0 +1,130 @@
+/* --- APP VARIABLES --- */
+:root { 
+    --primary: #0038b8; 
+    --bg: #f8f9fa; 
+    --white: #ffffff; 
+    --text: #1a1a1a; 
+    --accent: #27ae60; 
+}
+
+/* --- RESET & BASE --- */
+body, html { 
+    margin: 0; 
+    padding: 0; 
+    height: 100%; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    background: var(--bg); 
+    color: var(--text); 
+    overflow: hidden; 
+}
+
+/* --- HEADER --- */
+header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 15px 20px; 
+    background: white; 
+    border-bottom: 1px solid #eee; 
+    z-index: 1000; 
+    position: relative;
+}
+.app-title { 
+    font-weight: 800; 
+    font-size: 1.1rem; 
+    color: var(--primary); 
+    letter-spacing: -0.5px;
+}
+
+/* --- PAGE CONTAINERS --- */
+.page { 
+    height: calc(100vh - 140px); 
+    overflow-y: auto; 
+    padding: 20px; 
+    box-sizing: border-box; 
+}
+.hidden { display: none !important; }
+
+/* --- CATALOG CARDS (HOME PAGE) --- */
+.card { 
+    background: white; 
+    border-radius: 20px; 
+    overflow: hidden; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+    margin-bottom: 20px; 
+    cursor: pointer; 
+    border: 1px solid #eee; 
+    transition: transform 0.2s;
+}
+.card:active { transform: scale(0.98); }
+.card img { width: 100%; height: 180px; object-fit: cover; }
+.card-content { padding: 15px; }
+
+/* --- MAP AREA --- */
+#map { height: 100%; width: 100%; }
+
+/* --- CONTACT FORM --- */
+.contact-form input, 
+.contact-form textarea { 
+    width: 100%; 
+    padding: 12px; 
+    margin-bottom: 15px; 
+    border: 1px solid #ddd; 
+    border-radius: 10px; 
+    font-size: 16px; 
+    box-sizing: border-box; 
+}
+.submit-btn { 
+    width: 100%; 
+    padding: 15px; 
+    background: var(--primary); 
+    color: white; 
+    border: none; 
+    border-radius: 10px; 
+    font-weight: bold; 
+    cursor: pointer; 
+}
+
+/* --- BOTTOM TAB BAR --- */
+.tab-bar { 
+    position: fixed; 
+    bottom: 0; 
+    width: 100%; 
+    background: white; 
+    display: flex; 
+    padding: 10px 0 25px 0; 
+    border-top: 1px solid #eee; 
+    z-index: 5000; 
+}
+.tab-item { 
+    flex: 1; 
+    text-align: center; 
+    color: #aaa; 
+    font-size: 10px; 
+    font-weight: 600; 
+    cursor: pointer; 
+}
+.tab-item.active { color: var(--primary); }
+.tab-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+
+/* --- SLIDE-UP INFO PANEL --- */
+#info-panel { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    background: white; 
+    height: 50vh; 
+    z-index: 6000; 
+    border-radius: 25px 25px 0 0; 
+    padding: 25px; 
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.1); 
+    display: none; 
+}
+#info-img { 
+    width: 100%; 
+    height: 160px; 
+    object-fit: cover; 
+    border-radius: 15px; 
+    margin-bottom: 15px; 
+}
