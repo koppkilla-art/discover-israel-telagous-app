@@ -92,6 +92,22 @@
     <p>Questions about your trip? We're here to help.</p>
 </div>
 
+    <div id="page-feed" class="page hidden">
+    <h2 style="margin-top:0; font-weight: 800;">Live Tour Feed</h2>
+    <p style="color:var(--gray); font-size: 14px; margin-bottom: 20px;">Real-time updates and photos from your guide.</p>
+    <div id="live-feed-container">
+        </div>
+    <button onclick="showAdmin()" style="margin-top:50px; opacity:0.1; background:none; border:none;">Admin Access</button>
+
+<div id="admin-panel" class="hidden" style="padding:20px; background:#eee; border-radius:10px;">
+    <h3>Post Update</h3>
+    <input id="post-title" placeholder="Headline" style="width:100%; margin-bottom:10px;">
+    <textarea id="post-text" placeholder="Message content..." style="width:100%; margin-bottom:10px;"></textarea>
+    <input id="post-img" placeholder="Image Filename (e.g. photo1.jpg)" style="width:100%; margin-bottom:10px;">
+    <button onclick="submitPost()" class="btn-map-nav">Push to Live Feed</button>
+</div>
+</div>
+    
 <div class="tab-bar">
     <div id="tab-home" class="tab-item active" onclick="nav('home', this)">
         <span class="tab-icon">🏠</span>Home
@@ -99,10 +115,16 @@
     <div id="tab-map" class="tab-item" onclick="nav('map', this)">
         <span class="tab-icon">📍</span>Map
     </div>
+    <div id="tab-feed" class="tab-item" onclick="nav('feed', this)">
+        <span class="tab-icon">🔔</span>Updates
+    </div>
     <div id="tab-contact" class="tab-item" onclick="nav('contact', this)">
         <span class="tab-icon">📧</span>Support
     </div>
+
 </div>
+
+    
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -244,6 +266,45 @@
     window.onload = () => {
         nav('home', document.getElementById('tab-home'));
     };
+    // Sample Live Feed Data
+let liveFeed = [
+    {
+        title: "Welcome to Galilee!",
+        text: "The sun is shining over the lake today. We'll be heading to Capernaum in 15 minutes.",
+        img: "assets/images/group-photo-1.jpg",
+        time: "10:30 AM"
+    }
+];
+
+// Function to render the feed
+function renderFeed() {
+    const container = document.getElementById('live-feed-container');
+    container.innerHTML = '';
+    
+    liveFeed.reverse().forEach(post => {
+        const postEl = document.createElement('div');
+        postEl.className = 'deep-dive-box'; // Re-using your existing styles
+        postEl.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span class="section-h">Update</span>
+                <span style="font-size:10px; color:#aaa;">${post.time}</span>
+            </div>
+            ${post.img ? `<img src="${post.img}" style="width:100%; border-radius:10px; margin-bottom:10px;">` : ''}
+            <h4 style="margin:0 0 5px 0;">${post.title}</h4>
+            <p style="margin:0; font-size:14px; line-height:1.4; color:#333;">${post.text}</p>
+        `;
+        container.appendChild(postEl);
+    });
+}
+
+// Admin Post Function (For your console use)
+function adminPost(title, text, imgUrl) {
+    const now = new Date();
+    const timeStr = now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
+    liveFeed.push({ title, text, img: imgUrl, time: timeStr });
+    renderFeed();
+    alert("Update posted to the group!");
+}
 </script>
 </body>
 </html>
