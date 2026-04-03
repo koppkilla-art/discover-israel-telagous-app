@@ -3,30 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Israel Discovery | Sacred Steps</title>
+    <title>Israel Discovery | Tiered Tiered Guide</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="css/style.css"> <base href="./"> 
 
     <style>
-        /* These new rules ensure the 'Back' button and dynamic list are styled correctly */
-        #itinerary-list-container {
-            display: none; /* Hidden until trip is 'activated' */
-        }
-        .itinerary-active #itinerary-list-container {
-            display: block;
-        }
-        .itinerary-active #catalog-view {
-            display: none;
-        }
-        
+        /* --- DYNAMIC STATE TOGGLING (CSS) --- */
+        /* These rules control which content is visible within #page-home */
+
+        /* State 1: My Journeys (Default) */
+        #page-home #catalog-view { display: block; }
+        #page-home #itinerary-summary-container,
+        #page-home #full-guide-container { display: none; }
+
+        /* State 2: Itinerary Summary List (class .itinerary-active added to body) */
+        .itinerary-active #page-home #itinerary-summary-container { display: block; }
+        .itinerary-active #page-home #catalog-view,
+        .itinerary-active #page-home #full-guide-container { display: none; }
+
+        /* State 3: Full Deep-Dive Guide (class .guide-active added to body) */
+        .guide-active #page-home #full-guide-container { display: block; }
+        .guide-active #page-home #catalog-view,
+        .guide-active #page-home #itinerary-summary-container { display: none; }
+
+        /* Multi-Level Breadcrumb Back Buttons */
         .btn-breadcrumb {
             background: none; border: none; color: var(--gray); font-size: 14px;
             font-weight: 600; padding: 10px 0; cursor: pointer; display: none; margin-bottom: 10px;
         }
-        .itinerary-active .btn-breadcrumb {
-            display: block;
-        }
+        /* Show Back to Journeys in State 2 */
+        .itinerary-active .btn-breadcrumb.to-journeys { display: block; }
+        /* Show Back to Itinerary in State 3 */
+        .guide-active .btn-breadcrumb.to-itinerary { display: block; }
+        
+        /* Guide Content Styles */
+        .deep-dive-box { background: white; padding: 20px; border-radius: 15px; border: 1px solid #eee; margin-bottom: 20px; }
+        .section-h { font-size: 0.8rem; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .verse-block { background: #f0f4ff; border-left: 4px solid var(--primary); padding: 15px; font-style: italic; color: #333; border-radius: 0 8px 8px 0; }
+        .btn-map-nav { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; margin-top: 20px; font-size: 16px; }
     </style>
 </head>
 <body id="main-body">
@@ -37,7 +52,6 @@
 </header>
 
 <div id="page-home" class="page">
-    <button class="btn-breadcrumb" onclick="closeItinerary()">‹ Back to All Journeys</button>
     
     <div id="catalog-view">
         <h2 style="margin-top:0; font-weight: 800;">My Journeys</h2>
@@ -49,20 +63,21 @@
                 <p style="font-size:12px; color:#666; margin:0;">3 Days • 5 Locations</p>
             </div>
         </div>
-        <div class="card" style="opacity:0.5; cursor:default;">
-             <img src="assets/images/jerusalem.jpg" alt="Jerusalem">
-             <div style="padding:15px;">
-                 <span style="color:#777; font-size:10px; font-weight:bold;">UPCOMING</span>
-                 <h3 style="margin:5px 0;">Eternal Jerusalem Deep-Dive</h3>
-                 <p style="font-size:12px; color:#666;">Starts Oct 12, 2026</p>
-             </div>
         </div>
+
+    <div id="itinerary-summary-container">
+        <button class="btn-breadcrumb to-journeys" onclick="backToJourneys()">‹ Back to All Journeys</button>
+        <h2 style="margin-top:0; font-weight: 800;">Galilee Itinerary</h2>
+        <p style="color:var(--gray); font-size: 14px; margin-bottom: 20px;">Tap any location below to open the full historical guide.</p>
+        <div id="itinerary-summary-list">
+            </div>
     </div>
 
-    <div id="itinerary-list-container">
-        <h2 style="margin-top:0; font-weight: 800;">The Galilee: Day-by-Day</h2>
-        <p style="color:var(--gray); font-size: 14px; margin-bottom: 20px;">Tap any location to open the full guide.</p>
-        <div id="itinerary-list">
+    <div id="full-guide-container">
+        <button class="btn-breadcrumb to-itinerary" onclick="backToItinerary()">‹ Back to Itinerary</button>
+        <h2 id="deep-dive-title" style="margin:0 0 10px 0; color:var(--primary);"></h2>
+        <img id="deep-dive-hero" src="" style="width:100%; height:200px; object-fit:cover; border-radius:15px; margin-bottom:20px;">
+        <div id="deep-dive-content">
             </div>
     </div>
 </div>
@@ -74,15 +89,6 @@
 <div id="page-contact" class="page hidden">
     <h2>Contact Support</h2>
     <p>We are here to help. Send us a message.</p>
-</div>
-
-<div id="guide-view" class="full-overlay">
-    <div class="overlay-header">
-        <h3 id="guide-title" style="margin:0; color:var(--primary);"></h3>
-        <button class="btn-close" onclick="closeOverlay('guide-view')">Close</button>
-    </div>
-    <div id="guide-content" style="padding:20px;">
-        </div>
 </div>
 
 <div class="tab-bar">
@@ -106,6 +112,7 @@
     };
 
     let map;
+    const mainBody = document.getElementById('main-body');
 
     // --- FUNCTION: STRING TRUNCATION (Kept) ---
     function truncateString(str) {
@@ -113,20 +120,31 @@
         return str;
     }
 
-    // --- 1. HOME -> ITINERARY (REFINED) ---
-    // Dynamic Toggling within the same #page-home container
+    // --- NAVIGATION LOGIC (REFINED for tiered home) ---
+    function nav(pageId, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+        document.getElementById('page-' + pageId).classList.remove('hidden');
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        
+        // KEY REQUIREMENT: If they click 'Home' tab, they reset to the top-level catalog view
+        if(pageId === 'home') {
+            closeItinerary(); 
+        }
+        if(pageId === 'map') setTimeout(initMap, 100);
+    }
+
+    // --- STATE 1 -> STATE 2: CATALONG TO ITINERARY ---
     function openItinerary(tripId) {
         if(tripId !== 'galilee') return;
-        const listContainer = document.getElementById('itinerary-list');
-        const mainBody = document.getElementById('main-body');
-        
+        const listContainer = document.getElementById('itinerary-summary-list');
         listContainer.innerHTML = ''; // Clear old list
         
         for (let key in tourData) {
             const loc = tourData[key];
             const summaryCard = document.createElement('div');
             summaryCard.className = 'list-card';
-            summaryCard.onclick = () => openGuide(key); // Opens full overlay
+            summaryCard.onclick = () => openGuide(key); // Next stage: The Guide View
             summaryCard.innerHTML = `
                 <img src="${loc.img}" class="list-img">
                 <div class="list-details">
@@ -137,53 +155,57 @@
             `;
             listContainer.appendChild(summaryCard);
         }
-        // Key State Change: Add class to body to toggle visibility
+        // State Toggle: Add class to body to show itinerary summary view
+        mainBody.classList.remove('guide-active');
         mainBody.classList.add('itinerary-active');
     }
 
-    function closeItinerary() {
-        document.getElementById('main-body').classList.remove('itinerary-active');
+    // --- STATE 2 -> STATE 1: BREADCRUMB NAVIGATION ---
+    function backToJourneys() {
+        mainBody.classList.remove('itinerary-active');
     }
 
-    // --- 2. ITINERARY -> FULL GUIDE OVERLAY (Kept) ---
+    function closeItinerary() { // Universal function to reset all navigation
+        mainBody.classList.remove('itinerary-active');
+        mainBody.classList.remove('guide-active');
+    }
+
+    // --- STATE 2 -> STATE 3: ITINERARY TO FULL GUIDE (NEW DYNAMIC VIEW) ---
+    // This now injects the deep-dive content directly into #page-home
     function openGuide(locKey) {
         const loc = tourData[locKey];
-        const contentContainer = document.getElementById('guide-content');
-        document.getElementById('guide-title').innerText = loc.name;
+        const deepDiveContent = document.getElementById('deep-dive-content');
         
-        contentContainer.innerHTML = `
-            <img src="${loc.img}" style="width:100%; height:200px; object-fit:cover; border-radius:15px; margin-bottom:20px;">
-            <div class="guide-section"><div class="section-h">Historical Significance</div><p style="margin:0; line-height:1.6; color:#333;">${loc.history}</p></div>
-            <div class="guide-section"><div class="section-h">Reflection</div><p style="margin:0; font-style:italic; color:#555;">${loc.quote}</p></div>
-            <div class="guide-section"><div class="section-h">Biblical Context</div><div class="verse-box">${loc.verse}</div></div>
+        document.getElementById('deep-dive-title').innerText = loc.name;
+        document.getElementById('deep-dive-hero').src = loc.img;
+        
+        deepDiveContent.innerHTML = `
+            <div class="deep-dive-box"><div class="section-h">Historical Significance</div><p style="margin:0; line-height:1.6; color:#333;">${loc.history}</p></div>
+            <div class="deep-dive-box"><div class="section-h">Reflection</div><p style="margin:0; font-style:italic; color:#555;">${loc.quote}</p></div>
+            <div class="deep-dive-box"><div class="section-h">Biblical Context</div><div class="verse-block">${loc.verse}</div></div>
             <button onclick="viewOnMap([${loc.coords}])" class="btn-map-nav">📍 View on Map</button>
         `;
-        document.getElementById('guide-view').style.display = 'block';
+        // State Toggle: Add class to body to show the full deep-dive guide view
+        mainBody.classList.remove('itinerary-active');
+        mainBody.classList.add('guide-active');
     }
 
-    // --- 3. GUIDE -> MAP (REFINED FLOW) ---
+    // --- STATE 3 -> STATE 2: BREADCRUMB NAVIGATION (NEW) ---
+    function backToItinerary() {
+        mainBody.classList.remove('guide-active');
+        mainBody.classList.add('itinerary-active');
+    }
+
+    // --- STATE 3 -> MAP (REFINED FLOW) ---
     function viewOnMap(coords) {
-        // Only close the guide, not the itinerary summary state
-        closeOverlay('guide-view');
-        // Nav to map tab
+        // We stay in the 'active' journey, we just switch tabs.
+        // We do NOT reset the guide-active state.
         nav('map', document.getElementById('tab-map'));
         // Focus the map
         setTimeout(() => map.flyTo(coords, 14), 200);
     }
 
-    function closeOverlay(viewId) { document.getElementById(viewId).style.display = 'none'; }
-
-    // --- MAP & TAB LOGIC (Kept) ---
-    function nav(pageId, el) {
-        // If they click 'Home' tab and we are in an active itinerary, we keep it active. 
-        // If they click support or map, we just hide the home page container.
-        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-        document.getElementById('page-' + pageId).classList.remove('hidden');
-        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        if(pageId === 'map') setTimeout(initMap, 100);
-    }
-
+    // --- MAP LOGIC (Kept) ---
     function initMap() {
         if(map) { map.invalidateSize(); return; }
         map = L.map('map', { zoomControl: false }).setView([32.8, 35.5], 11);
