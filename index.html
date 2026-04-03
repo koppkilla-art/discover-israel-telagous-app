@@ -3,30 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Israel Discovery</title>
+    <title>Israel Discovery | Sacred Steps</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <base href="./"> 
- <link rel="stylesheet" href="css/style.css">
-<link rel="icon" type="image/png" href="logo.png">
-<link rel="apple-touch-icon" href="logo.png">
-<link rel="shortcut icon" href="logo.png">
+
+    <style>
+        :root { --primary: #0038b8; --bg: #f8f9fa; --white: #ffffff; --text: #1a1a1a; --accent: #27ae60; --gray: #888; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+
+        /* --- Global Components --- */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border-bottom: 1px solid #eee; z-index: 1000; position: relative; }
+        .app-title { font-weight: 800; font-size: 1.1rem; color: var(--primary); }
+        
+        .page { height: calc(100vh - 140px); overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        .hidden { display: none !important; }
+
+        /* --- Full Screen Overlays (Itinerary and Guide) --- */
+        .full-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 6000; display: none; overflow-y: auto;
+            padding-bottom: 80px; box-sizing: border-box;
+        }
+        .overlay-header {
+            position: sticky; top: 0; background: var(--bg); padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; z-index: 10;
+        }
+        .btn-close { border: none; background: #eee; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+        /* --- Text Truncation Logic --- */
+        .truncate {
+            white-space: nowrap;      /* Don't wrap lines */
+            overflow: hidden;         /* Hide extra text */
+            text-overflow: ellipsis;  /* Add '...' */
+            display: block;           /* Necessary for truncation */
+            max-width: 100%;          /* Don't expand beyond parent */
+            color: var(--gray); font-size: 12px; margin: 0;
+        }
+
+        /* --- Trip/Location List Styling --- */
+        .list-card { 
+            background: white; border-radius: 15px; overflow: hidden; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-bottom: 15px; 
+            display: flex; align-items: center; cursor: pointer; border: 1px solid #eee;
+        }
+        .list-img { width: 70px; height: 70px; object-fit: cover; }
+        .list-details { padding: 15px; flex-grow: 1; min-width: 0; } /* min-width: 0 is key for truncation inside flex */
+
+        /* --- Home/Catalog Cards --- */
+        .card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; cursor: pointer; border: 1px solid #eee; }
+        .card img { width: 100%; height: 180px; object-fit: cover; }
+
+        /* --- Guide Page Sections --- */
+        .guide-section { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee; }
+        .section-h { font-size: 0.8rem; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .verse-box { background: #f0f4ff; border-left: 4px solid var(--primary); padding: 15px; font-style: italic; color: #333; }
+
+        /* --- Map & Tab Bar --- */
+        #map { height: 100%; width: 100%; }
+        .tab-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; padding: 10px 0 25px 0; border-top: 1px solid #eee; z-index: 5000; }
+        .tab-item { flex: 1; text-align: center; color: #aaa; font-size: 10px; font-weight: 600; cursor: pointer; }
+        .tab-item.active { color: var(--primary); }
+        .tab-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+    </style>
 </head>
 <body>
 
 <header>
-    <div class="app-title">ISRAEL DISCOVERY</div>
-    <div style="font-size: 1.2rem;">👤</div>
+    <div class="app-title">SACRED STEPS</div>
+    <div style="font-size: 1.2rem; background:#eee; padding:5px; border-radius:50%;">👤</div>
 </header>
 
 <div id="page-home" class="page">
-    <h2 style="margin-top:0;">My Discovery</h2>
-    <div class="card" onclick="activateTrip('galilee')">
+    <h2 style="margin-top:0; font-weight: 800;">My Journeys</h2>
+    <div class="card" onclick="openItinerary('galilee')">
         <img src="assets/images/sea-of-galilee.jpg" alt="Galilee">
-        <div class="card-content">
+        <div style="padding: 15px;">
             <span style="color:var(--accent); font-size:10px; font-weight:bold;">ACTIVE NOW</span>
-            <h3 style="margin:5px 0;">The Way of the Galilee</h3>
-            <p style="font-size:12px; color:#666; margin:0;">3 Days • 4 Locations Unlocked</p>
+            <h3 style="margin:5px 0; font-size:1.2rem;">The Way of the Galilee</h3>
+            <p style="font-size:12px; color:#666; margin:0;">3 Days • 5 Locations</p>
         </div>
     </div>
 </div>
@@ -36,15 +91,29 @@
 </div>
 
 <div id="page-contact" class="page hidden">
-    <h2>Contact Us</h2>
-    <p style="color:#666; margin-bottom:20px;">Questions about the tour? Send us a message.</p>
-    
-    <form action="https://formspree.io/f/your-form-id" method="POST" class="contact-form">
-        <input type="text" name="name" placeholder="Your Name" required>
-        <input type="email" name="email" placeholder="Your Email" required>
-        <textarea name="message" rows="4" placeholder="How can we help?" required></textarea>
-        <button type="submit" class="submit-btn">Send Message</button>
-    </form>
+    <h2>Contact Support</h2>
+    <p>We are here to help. Send us a message.</p>
+</div>
+
+<div id="itinerary-view" class="full-overlay">
+    <div class="overlay-header">
+        <h3 style="margin:0;">Tour Itinerary</h3>
+        <button class="btn-close" onclick="closeOverlay('itinerary-view')">Back</button>
+    </div>
+    <div style="padding:20px;">
+        <p style="color:var(--gray); font-size: 14px; margin-bottom: 20px;">Tap any location below to open the full guide and historical media.</p>
+        <div id="itinerary-list">
+            </div>
+    </div>
+</div>
+
+<div id="guide-view" class="full-overlay">
+    <div class="overlay-header">
+        <h3 id="guide-title" style="margin:0; color:var(--primary);"></h3>
+        <button class="btn-close" onclick="closeOverlay('guide-view')">Close</button>
+    </div>
+    <div id="guide-content" style="padding:20px;">
+        </div>
 </div>
 
 <div class="tab-bar">
@@ -55,29 +124,124 @@
         <span class="tab-icon">📍</span>Map
     </div>
     <div class="tab-item" onclick="nav('contact', this)">
-        <span class="tab-icon">📧</span>Contact
+        <span class="tab-icon">📧</span>Support
     </div>
-</div>
-
-<div id="info-panel">
-    <button onclick="document.getElementById('info-panel').style.display='none'" style="float:right; border:none; background:#eee; border-radius:50%; width:30px; height:30px;">✕</button>
-    <h2 id="info-title" style="margin:0 0 10px 0; color:var(--primary);"></h2>
-    <img id="info-img" src="" style="width:100%; height:160px; object-fit:cover; border-radius:15px; margin-bottom:15px;">
-    <p id="info-desc" style="font-size:14px; line-height:1.5; color:#444;"></p>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // --- UPDATED DATA STRUCTURE ---
     const tourData = {
-        'jerusalem': { name: 'Jerusalem', coords: [31.768, 35.213], desc: 'The spiritual heart of the world, home to thousands of years of biblical history.', img: 'assets/images/jerusalem.jpg' },
-        'capernaum': { name: 'Capernaum', coords: [32.880, 35.575], desc: 'Jesus\'s base of operations in Galilee. Explore the ancient synagogue ruins.', img: 'assets/images/capernaum.jpg' },
-        'sea-of-galilee': { name: 'Sea of Galilee', coords: [32.82, 35.58], desc: 'The freshwater lake where Jesus walked on water and called his disciples.', img: 'assets/images/sea-of-galilee.jpg' },
-        'magdala': { name: 'Magdala', coords: [32.830, 35.526], desc: 'Home of Mary Magdalene, featuring an incredibly preserved 1st-century synagogue.', img: 'assets/images/magdala.jpg' },
-        'en-gedi': { name: 'En-Gedi', coords: [31.455, 35.388], desc: 'The desert oasis where David hid from King Saul among the springs.', img: 'assets/images/en-gedi.jpg' }
+        'jerusalem': { 
+            name: 'Jerusalem', coords: [31.768, 35.213], 
+            teaser: 'The spiritual heart of the world, home to thousands of years of bibical history.', // Teaser is > 60 chars
+            history: 'Jerusalem has been a sacred site for millennia. It was the site of the First Temple built by Solomon and the Second Temple, central to Jewish life. It is also where Jesus spent his final week, was crucified, and resurrected. Today, it remains a focal point of faith for Jews, Christians, and Muslims.',
+            quote: '"Pray for the peace of Jerusalem: May those who love you be secure." - Psalm 122:6',
+            verse: 'Micah 4:2 - Many nations will come and say, "Come, let us go up to the mountain of the Lord, to the temple of the God of Jacob."',
+            img: 'assets/images/jerusalem.jpg' 
+        },
+        'capernaum': { 
+            name: 'Capernaum', coords: [32.880, 35.575], 
+            teaser: 'Jesus\'s base of operations in Galilee. Explore the synagogue ruins.', // Teaser is > 60 chars
+            history: 'A thriving fishing village in the 1st century, Capernaum became the "town of Jesus" after he left Nazareth. Many miracles occurred here, and Jesus taught frequently in the synagogue, the limestone remains of which are still visible today.',
+            quote: 'This synagogue is traditionally built over the foundations of the one where Jesus preached the Bread of Life sermon.',
+            verse: 'Matthew 4:13 - Leaving Nazareth, he went and lived in Capernaum, which was by the lake in the area of Zebulun and Naphtali.',
+            img: 'assets/images/capernaum.jpg' 
+        },
+        'sea-of-galilee': {
+            name: 'Sea of Galilee', coords: [32.82, 35.58],
+            teaser: 'The freshwater lake where Jesus walked on water.',
+            history: 'Also known as Lake Kinneret, this lake provided the livelihood for the disciples. The shoreline hosted the Sermon on the Mount and the feeding of the multitudes.',
+            quote: 'This sea has been the setting for both tranquil teachings and miraculous storms.',
+            verse: 'Mark 1:16 - As Jesus walked beside the Sea of Galilee, he saw Simon and his brother Andrew casting a net into the lake, for they were fishermen.',
+            img: 'assets/images/sea-of-galilee.jpg'
+        }
+        // Add all locations following this model
     };
 
     let map;
 
+    // --- FUNCTION: STRING TRUNCATION (NEW) ---
+    // Cuts text at 60 chars and adds '...'
+    function truncateString(str) {
+        if (str.length > 60) {
+            return str.substring(0, 60) + '...';
+        }
+        return str;
+    }
+
+    // --- 1. HOME -> ITINERARY (NEW) ---
+    function openItinerary(tripId) {
+        if(tripId !== 'galilee') return;
+        const listContainer = document.getElementById('itinerary-list');
+        listContainer.innerHTML = ''; // Clear old list
+        
+        // Loop through data and build summary cards
+        for (let key in tourData) {
+            const loc = tourData[key];
+            const summaryCard = document.createElement('div');
+            summaryCard.className = 'list-card';
+            summaryCard.onclick = () => openGuide(key); // Next stage: The Guide
+            
+            // USE TRUNCATION LOGIC HERE
+            summaryCard.innerHTML = `
+                <img src="${loc.img}" class="list-img">
+                <div class="list-details">
+                    <h4 style="margin:0 0 5px 0;">${loc.name}</h4>
+                    <p class="truncate">${truncateString(loc.teaser)}</p>
+                </div>
+                <div style="padding-right:15px; color:#ccc; font-size:20px;">›</div>
+            `;
+            listContainer.appendChild(summaryCard);
+        }
+        document.getElementById('itinerary-view').style.display = 'block';
+    }
+
+    // --- 2. ITINERARY -> FULL GUIDE (NEW) ---
+    function openGuide(locKey) {
+        const loc = tourData[locKey];
+        const contentContainer = document.getElementById('guide-content');
+        
+        document.getElementById('guide-title').innerText = loc.name;
+        
+        // Build the multi-section deep dive
+        contentContainer.innerHTML = `
+            <img src="${loc.img}" style="width:100%; height:200px; object-fit:cover; border-radius:15px; margin-bottom:20px;">
+            
+            <div class="guide-section">
+                <div class="section-h">Historical Significance</div>
+                <p style="margin:0; line-height:1.6; color:#333;">${loc.history}</p>
+            </div>
+            
+            <div class="guide-section">
+                <div class="section-h">Reflection</div>
+                <p style="margin:0; font-style:italic; color:#555;">${loc.quote}</p>
+            </div>
+            
+            <div class="guide-section">
+                <div class="section-h">Biblical Context</div>
+                <div class="verse-box">${loc.verse}</div>
+            </div>
+
+            <button onclick="viewOnMap([${loc.coords}])" style="width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:bold; margin-top:20px;">📍 View on Map</button>
+        `;
+        document.getElementById('guide-view').style.display = 'block';
+    }
+
+    // --- 3. GUIDE -> MAP (NEW FLOW) ---
+    function viewOnMap(coords) {
+        // Close both overlays
+        closeOverlay('guide-view');
+        closeOverlay('itinerary-view');
+        // Nav to map tab
+        nav('map', document.querySelectorAll('.tab-item')[1]);
+        // Focus the map
+        setTimeout(() => map.flyTo(coords, 14), 200);
+    }
+
+    function closeOverlay(viewId) { document.getElementById(viewId).style.display = 'none'; }
+
+    // --- MAP & TAB LOGIC ---
     function nav(pageId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
         document.getElementById('page-' + pageId).classList.remove('hidden');
@@ -88,24 +252,9 @@
 
     function initMap() {
         if(map) { map.invalidateSize(); return; }
-        map = L.map('map', { zoomControl: false }).setView([31.8, 35.3], 8);
+        map = L.map('map', { zoomControl: false }).setView([32.8, 35.5], 11);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-
-        for (let key in tourData) {
-            let loc = tourData[key];
-            L.marker(loc.coords).addTo(map).on('click', () => showInfo(loc));
-        }
-    }
-
-    function showInfo(loc) {
-        document.getElementById('info-title').innerText = loc.name;
-        document.getElementById('info-desc').innerText = loc.desc;
-        document.getElementById('info-img').src = loc.img;
-        document.getElementById('info-panel').style.display = 'block';
-    }
-
-    function activateTrip(trip) {
-        nav('map', document.querySelectorAll('.tab-item')[1]);
+        for (let key in tourData) { L.marker(tourData[key].coords).addTo(map); }
     }
 </script>
 </body>
