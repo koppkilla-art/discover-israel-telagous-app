@@ -272,8 +272,9 @@
     window.onload = () => {
         nav('home', document.getElementById('tab-home'));
     };
-    // Sample Live Feed Data
-let liveFeed = [
+
+// 1. Initialize the feed array at the TOP of your script
+    let liveFeed = [
     {
         title: "Welcome to Galilee!",
         text: "The sun is shining over the lake today. We'll be heading to Capernaum in 15 minutes.",
@@ -282,47 +283,70 @@ let liveFeed = [
     }
 ];
 
-// Function to render the feed
+// 2. The logic to handle the Admin Posting
+function adminPost(title, text, imgUrl) {
+    console.log("Attempting to post:", title); // Debugging line
+    
+    const now = new Date();
+    const timeStr = now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
+    
+    // Add new post to the beginning of the array
+    liveFeed.unshift({ 
+        title: title, 
+        text: text, 
+        img: imgUrl, 
+        time: timeStr 
+    });
+    
+    renderFeed();
+    alert("Update pushed to Discover Israel feed!");
+}
+
+// 3. The logic to show the posts on the Updates page
 function renderFeed() {
     const container = document.getElementById('live-feed-container');
+    if (!container) return; // Safety check
+    
     container.innerHTML = '';
     
-    liveFeed.reverse().forEach(post => {
+    liveFeed.forEach(post => {
         const postEl = document.createElement('div');
-        postEl.className = 'deep-dive-box'; // Re-using your existing styles
+        postEl.className = 'deep-dive-box'; 
+        postEl.style.marginBottom = "15px";
         postEl.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span class="section-h">Update</span>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span class="section-h">Live Update</span>
                 <span style="font-size:10px; color:#aaa;">${post.time}</span>
             </div>
             ${post.img ? `<img src="${post.img}" style="width:100%; border-radius:10px; margin-bottom:10px;">` : ''}
-            <h4 style="margin:0 0 5px 0;">${post.title}</h4>
-            <p style="margin:0; font-size:14px; line-height:1.4; color:#333;">${post.text}</p>
+            <h4 style="margin:0 0 5px 0; color:var(--primary);">${post.title}</h4>
+            <p style="margin:0; font-size:14px; line-height:1.4;">${post.text}</p>
         `;
         container.appendChild(postEl);
     });
 }
 
-// Admin Post Function (For your console use)
-function adminPost(title, text, imgUrl) {
-    const now = new Date();
-    const timeStr = now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
-    liveFeed.push({ title, text, img: imgUrl, time: timeStr });
-    renderFeed();
-    alert("Update posted to the group!");
-}
-    function showAdmin() {
-    const pass = prompt("Enter Admin Password:");
-    if(pass === "1234") { // Simple POC password
-        document.getElementById('admin-panel').classList.remove('hidden');
-    }
-}
-
+// 4. The Bridge function for the Button
 function submitPost() {
-    const title = document.getElementById('post-title').value;
-    const text = document.getElementById('post-text').value;
-    const img = document.getElementById('post-img').value;
-    adminPost(title, text, img);
+    console.log("Submit Button Clicked"); // Debugging line
+    
+    const titleInput = document.getElementById('post-title');
+    const textInput = document.getElementById('post-text');
+    const imgInput = document.getElementById('post-img');
+
+    if(!titleInput.value || !textInput.value) {
+        alert("Please enter a Headline and a Message.");
+        return;
+    }
+
+    // Push data
+    adminPost(titleInput.value, textInput.value, imgInput.value);
+
+    // Clear and Hide
+    titleInput.value = '';
+    textInput.value = '';
+    imgInput.value = '';
+    document.getElementById('admin-panel').classList.add('hidden');
 }
 </script>
 </body>
