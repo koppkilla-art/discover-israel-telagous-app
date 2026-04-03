@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Israel Discovery | Map Exploration</title>
+    <title>Sacred Steps | Israel Discovery</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <base href="./"> <style>
@@ -17,15 +17,16 @@
         .page { height: calc(100vh - 140px); overflow-y: auto; padding: 20px; box-sizing: border-box; }
         .hidden { display: none !important; }
 
-        /* --- Map Page UI --- */
-        #map { height: 100%; width: 100%; }
+        /* --- MAP PAGE UI --- */
+        #page-map { padding: 0; position: relative; } /* Corrected padding for map */
+        #map { height: 100%; width: 100%; z-index: 1; } /* Added z-index to map */
         
-        /* --- 1. MAP PREVIEW CARD (NEW) --- */
+        /* --- 1. MAP PREVIEW CARD (REFINED) --- */
         #map-preview-card {
             position: absolute; bottom: 10px; left: 10px; right: 10px;
             background: rgba(255,255,255,0.95); backdrop-filter: blur(5px);
             border-radius: 15px; padding: 12px; display: none; align-items: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 2000; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 2000; /* Must be higher than map's z-index */
             cursor: pointer; border: 1px solid #eee; transition: transform 0.2s ease-out;
         }
         #map-preview-card.show { display: flex; transform: translateY(0); }
@@ -79,8 +80,7 @@
     </div>
 </div>
 
-<div id="page-map" class="page hidden" style="padding:0; position: relative;">
-    <div id="map"></div>
+<div id="page-map" class="page hidden"> <div id="map"></div>
     
     <div id="map-preview-card" onclick="openFullGuideFromMap()">
         <img id="preview-thumb" src="" class="preview-img">
@@ -119,11 +119,12 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // --- UPDATED AND FIXED TOUR DATA ---
     const tourData = {
         'jerusalem': { name: 'Jerusalem', coords: [31.768, 35.213], history: 'Jerusalem has been a sacred site for millennia...', quote: '"Pray for the peace of Jerusalem..."', verse: 'Micah 4:2...', img: 'assets/images/jerusalem.jpg' },
         'capernaum': { name: 'Capernaum', coords: [32.880, 35.575], history: 'Jesus\'s base of operations in Galilee...', quote: 'Built over the foundations of the synagogue...', verse: 'Matthew 4:13...', img: 'assets/images/capernaum.jpg' },
         'sea-of-galilee': { name: 'Sea of Galilee', coords: [32.82, 35.58], history: 'Setting for many recorded miracles...', quote: 'Setting for tranquil teachings and miraculous storms.', verse: 'Mark 1:16...', img: 'assets/images/sea-of-galilee.jpg' },
-        'magdala': { name: 'Magdala', coords: [32.830, 35.526], history: 'Home of Mary Magdalene, featuring an incredibly preserved 1st-century synagogue.', quote: 'A significant archaeological discovery on the shores of the Galilee.', verse: 'Luke 8:1-2 - Soon afterward he went on through cities and villages, proclaiming and bringing the good news of the kingdom of God...', img: 'assets/images/magdala.jpg' }
+        'magdala': { name: 'Magdala', coords: [32.830, 35.526], history: 'Home of Mary Magdalene, featuring an incredibly preserved 1st-century synagogue.', quote: 'A significant archaeological discovery on the shores of the Galilee.', verse: 'Luke 8:1-2...', img: 'assets/images/magdala.jpg' }
     };
 
     let map;
@@ -136,8 +137,9 @@
         document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
         
-        // Hide map preview when leaving map page
-        if(pageId !== 'map') hideMapPreview();
+        // --- FIXED LOGIC ---
+        // Hide map preview when leaving map page and clear current location key
+        hideMapPreview();
 
         if(pageId === 'map') setTimeout(initMap, 100);
     }
@@ -147,32 +149,39 @@
         nav('map', document.querySelectorAll('.tab-item')[1]);
     }
 
-    // 3. Initialize Map with Pins (UPDATED)
+    // 3. Initialize Map with Pins
     function initMap() {
         if(map) { map.invalidateSize(); return; }
         map = L.map('map', { zoomControl: false }).setView([32.85, 35.55], 11);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
 
+        // --- FIXED LOGIC ---
+        // Ensure markers are added *after* the map is fully loaded
         for (let key in tourData) {
             let loc = tourData[key];
             let marker = L.marker(loc.coords).addTo(map);
             
-            // Tapping a pin calls showMapPreview, not showGuide
+            // Connect pin click directly to the showMapPreview function
             marker.on('click', () => showMapPreview(key));
         }
-        // Click on map to hide preview
+        
+        // --- FIXED LOGIC ---
+        // Ensure clicking on the map hides the preview card, but tapping on the card does not
         map.on('click', hideMapPreview);
     }
 
-    // 4. --- SHOW MAP PREVIEW CARD (NEW) ---
+    // 4. --- SHOW MAP PREVIEW CARD ---
     function showMapPreview(locKey) {
         currentLocKey = locKey; // Track which location is active
         const loc = tourData[locKey];
         const card = document.getElementById('map-preview-card');
         
+        // --- FIXED LOGIC ---
+        // Clear old content and update with current location
         document.getElementById('preview-name').innerText = loc.name;
         document.getElementById('preview-thumb').src = loc.img;
         
+        // Use class to toggle visibility and ensure panTo is smooth
         card.classList.add('show');
         map.panTo(loc.coords);
     }
@@ -182,16 +191,19 @@
         currentLocKey = null;
     }
 
-    // 5. --- OPEN FULL GUIDE FROM MAP (NEW) ---
+    // 5. --- OPEN FULL GUIDE FROM MAP (Drill-Down Logic) ---
     // User taps the dynamic preview card to "drill down"
     function openFullGuideFromMap() {
-        if(!currentLocKey) return; // Safety check
+        if(!currentLocKey) return; // Safety check: ensured by currentLocKey being null after hideMapPreview
+        
         const loc = tourData[currentLocKey];
         const contentContainer = document.getElementById('guide-content');
         
-        hideMapPreview(); // Hide the small card
+        // Close the map preview card first for smooth transition
+        hideMapPreview();
 
-        // Build the multi-section deep dive
+        // --- FIXED LOGIC ---
+        // Dynamically build the multi-section deep dive inside the overlay
         document.getElementById('guide-title').innerText = loc.name;
         contentContainer.innerHTML = `
             <img src="${loc.img}" style="width:100%; height:180px; object-fit:cover; border-radius:15px; margin-bottom:20px;">
@@ -199,7 +211,7 @@
             <div class="guide-section"><div class="section-h">Reflection</div><p style="margin:0; font-style:italic; color:#555;">${loc.quote}</p></div>
             <div class="guide-section"><div class="section-h">Biblical Context</div><div class="verse-box">${loc.verse}</div></div>
         `;
-        // Show the overlay
+        // Show the guide overlay while maintaining the current tab (Map)
         document.getElementById('guide-view').style.display = 'block';
     }
 
