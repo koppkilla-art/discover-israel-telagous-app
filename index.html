@@ -213,9 +213,27 @@
         }, 300);
     }
 
-    function openFullGuideFromMap() {
-        if(currentLocKey) openGuide(currentLocKey);
+    // --- UPDATED MAP DRILL-DOWN LOGIC ---
+function openFullGuideFromMap() {
+    // 1. Check if we actually have a location selected
+    if (!currentLocKey) {
+        console.error("No location selected to open.");
+        return;
     }
+
+    // 2. Hide the map preview card immediately
+    hideMapPreview();
+
+    // 3. Trigger the existing 'openGuide' function with our active key
+    // This re-uses the logic we already built for the home page list
+    openGuide(currentLocKey);
+    
+    // 4. Switch the view back to the Home tab where the Guide lives
+    // This ensures the user sees the content we just 'injected'
+    nav('home', document.getElementById('tab-home'));
+}
+
+    
 
     // --- STARTUP LOGIC ---
     window.onload = () => {
