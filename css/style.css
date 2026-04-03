@@ -47,7 +47,7 @@ header {
 .tab-icon { font-size: 20px; display: block; margin-bottom: 2px; }
 
 
-/* --- 4. TEXT TRUNCATION (Kept and Crucial) --- */
+/* --- 4. TEXT TRUNCATION (CRUCIAL ADDITION) --- */
 .truncate {
     white-space: nowrap;      /* Don't wrap lines */
     overflow: hidden;         /* Hide extra text */
@@ -134,6 +134,8 @@ header {
 }
 
 
+/* --- --- --- --- NEW: MAP PAGE EXPLORATION FLOW --- --- --- --- */
+
 /* --- 10. MAP UI & GPS TRIGGERS --- */
 #map { height: 100%; width: 100%; }
 
@@ -149,3 +151,21 @@ header {
     70% { box-shadow: 0 0 0 15px rgba(39, 174, 96, 0); } 
     100% { box-shadow: 0 0 0 0px rgba(39, 174, 96, 0); } 
 }
+
+
+/* --- 11. MAP PREVIEW CARD (NEW) --- */
+/* Soft-blur dynamic summary card, replaces old overlay info-panel */
+#map-preview-card {
+    position: absolute; bottom: 10px; left: 10px; right: 10px;
+    background: rgba(255,255,255,0.95); /* Semi-transparent */
+    backdrop-filter: blur(5px); /* Native blur effect */
+    border-radius: 15px; padding: 12px; display: none; align-items: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 2000; 
+    cursor: pointer; border: 1px solid #eee; transition: transform 0.2s ease-out;
+    transform: translateY(20px); /* Slides up slightly */
+}
+#map-preview-card.show { display: flex; transform: translateY(0); }
+.preview-img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 12px; }
+.preview-details { flex-grow: 1; }
+.preview-title { font-size: 16px; font-weight: 700; margin: 0; color: var(--primary); }
+.preview-cta { font-size: 11px; color: var(--gray); font-weight: 600; margin-top: 2px; text-transform: uppercase; }
