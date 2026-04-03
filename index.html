@@ -90,22 +90,25 @@
 <div id="page-contact" class="page hidden">
     <h2>Contact Support</h2>
     <p>Questions about your trip? We're here to help.</p>
-</div>
+    
+    <div class="deep-dive-box">
+        <p><strong>Emergency:</strong> +972 50-000-0000</p>
+        <p><strong>Email:</strong> guide@sacredsteps.com</p>
+    </div>
 
-    <div id="page-feed" class="page hidden">
-    <h2 style="margin-top:0; font-weight: 800;">Live Tour Feed</h2>
-    <p style="color:var(--gray); font-size: 14px; margin-bottom: 20px;">Real-time updates and photos from your guide.</p>
-    <div id="live-feed-container">
-        </div>
-    <button onclick="showAdmin()" style="margin-top:50px; opacity:0.1; background:none; border:none;">Admin Access</button>
+    <div style="margin-top: 100px; text-align: center;">
+        <button onclick="showAdmin()" style="opacity: 0.1; background: none; border: none; color: #888; font-size: 10px;">
+            Admin Access
+        </button>
+    </div>
 
-<div id="admin-panel" class="hidden" style="padding:20px; background:#eee; border-radius:10px;">
-    <h3>Post Update</h3>
-    <input id="post-title" placeholder="Headline" style="width:100%; margin-bottom:10px;">
-    <textarea id="post-text" placeholder="Message content..." style="width:100%; margin-bottom:10px;"></textarea>
-    <input id="post-img" placeholder="Image Filename (e.g. photo1.jpg)" style="width:100%; margin-bottom:10px;">
-    <button onclick="submitPost()" class="btn-map-nav">Push to Live Feed</button>
-</div>
+    <div id="admin-panel" class="hidden" style="margin-top: 20px; padding: 20px; background: #eee; border-radius: 15px; border: 2px dashed #ccc;">
+        <h3 style="margin-top:0;">Post Live Update</h3>
+        <input id="post-title" placeholder="Headline (e.g. Lunch Update)" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+        <textarea id="post-text" placeholder="Your message to the group..." style="width:100%; padding:10px; height:80px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
+        <input id="post-img" placeholder="Image URL (optional)" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+        <button onclick="submitPost()" class="btn-map-nav" style="margin-top:0;">🚀 Push to Live Feed</button>
+    </div>
 </div>
     
 <div class="tab-bar">
