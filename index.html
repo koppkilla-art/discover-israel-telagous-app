@@ -305,6 +305,19 @@ function adminPost(title, text, imgUrl) {
     renderFeed();
     alert("Update posted to the group!");
 }
+    function showAdmin() {
+    const pass = prompt("Enter Admin Password:");
+    if(pass === "1234") { // Simple POC password
+        document.getElementById('admin-panel').classList.remove('hidden');
+    }
+}
+
+function submitPost() {
+    const title = document.getElementById('post-title').value;
+    const text = document.getElementById('post-text').value;
+    const img = document.getElementById('post-img').value;
+    adminPost(title, text, img);
+}
 </script>
 </body>
 </html>
