@@ -1,7 +1,7 @@
 
 {
-  "name": "Sacred Steps: Israel Discovery",
-  "short_name": "Sacred Steps",
+  "name": "Discover Israel: 2026 Expedition",
+  "short_name": "Discover Israel",
   "description": "An interactive digital guide for your 2026 Israel expedition.",
   "start_url": "./index.html",
   "display": "standalone",
