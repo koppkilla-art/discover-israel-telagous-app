@@ -3,48 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Israel Discovery | Tiered Tiered Guide</title>
+    <title>Israel Discovery | Map Exploration</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/style.css"> <base href="./"> 
+    <base href="./"> <style>
+        :root { --primary: #0038b8; --bg: #f8f9fa; --white: #ffffff; --text: #1a1a1a; --accent: #27ae60; --gray: #888; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
-    <style>
-        /* --- DYNAMIC STATE TOGGLING (CSS) --- */
-        /* These rules control which content is visible within #page-home */
-
-        /* State 1: My Journeys (Default) */
-        #page-home #catalog-view { display: block; }
-        #page-home #itinerary-summary-container,
-        #page-home #full-guide-container { display: none; }
-
-        /* State 2: Itinerary Summary List (class .itinerary-active added to body) */
-        .itinerary-active #page-home #itinerary-summary-container { display: block; }
-        .itinerary-active #page-home #catalog-view,
-        .itinerary-active #page-home #full-guide-container { display: none; }
-
-        /* State 3: Full Deep-Dive Guide (class .guide-active added to body) */
-        .guide-active #page-home #full-guide-container { display: block; }
-        .guide-active #page-home #catalog-view,
-        .guide-active #page-home #itinerary-summary-container { display: none; }
-
-        /* Multi-Level Breadcrumb Back Buttons */
-        .btn-breadcrumb {
-            background: none; border: none; color: var(--gray); font-size: 14px;
-            font-weight: 600; padding: 10px 0; cursor: pointer; display: none; margin-bottom: 10px;
-        }
-        /* Show Back to Journeys in State 2 */
-        .itinerary-active .btn-breadcrumb.to-journeys { display: block; }
-        /* Show Back to Itinerary in State 3 */
-        .guide-active .btn-breadcrumb.to-itinerary { display: block; }
+        /* --- Global Components --- */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border-bottom: 1px solid #eee; z-index: 1000; position: relative; }
+        .app-title { font-weight: 800; font-size: 1.1rem; color: var(--primary); }
         
-        /* Guide Content Styles */
-        .deep-dive-box { background: white; padding: 20px; border-radius: 15px; border: 1px solid #eee; margin-bottom: 20px; }
+        .page { height: calc(100vh - 140px); overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        .hidden { display: none !important; }
+
+        /* --- Map Page UI --- */
+        #map { height: 100%; width: 100%; }
+        
+        /* --- 1. MAP PREVIEW CARD (NEW) --- */
+        #map-preview-card {
+            position: absolute; bottom: 10px; left: 10px; right: 10px;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(5px);
+            border-radius: 15px; padding: 12px; display: none; align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 2000; 
+            cursor: pointer; border: 1px solid #eee; transition: transform 0.2s ease-out;
+        }
+        #map-preview-card.show { display: flex; transform: translateY(0); }
+        .preview-img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 12px; }
+        .preview-details { flex-grow: 1; }
+        .preview-title { font-size: 16px; font-weight: 700; margin: 0; color: var(--primary); }
+        .preview-cta { font-size: 11px; color: var(--gray); font-weight: 600; margin-top: 2px; text-transform: uppercase; }
+
+        /* --- 2. FULL GUIDE OVERLAY (UPDATED) --- */
+        #guide-view {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 6000; display: none; overflow-y: auto;
+            padding-bottom: 80px; box-sizing: border-box;
+        }
+        .overlay-header {
+            position: sticky; top: 0; background: var(--bg); padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; z-index: 10;
+        }
+        .btn-close { border: none; background: #eee; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        .guide-section { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee; }
         .section-h { font-size: 0.8rem; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-        .verse-block { background: #f0f4ff; border-left: 4px solid var(--primary); padding: 15px; font-style: italic; color: #333; border-radius: 0 8px 8px 0; }
-        .btn-map-nav { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; margin-top: 20px; font-size: 16px; }
+        .verse-box { background: #f0f4ff; border-left: 4px solid var(--primary); padding: 15px; font-style: italic; color: #333; }
+
+        /* --- Home/Catalog Cards --- */
+        .card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; cursor: pointer; border: 1px solid #eee; }
+        .card img { width: 100%; height: 180px; object-fit: cover; }
+
+        /* --- Tab Bar --- */
+        .tab-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; padding: 10px 0 25px 0; border-top: 1px solid #eee; z-index: 5000; }
+        .tab-item { flex: 1; text-align: center; color: #aaa; font-size: 10px; font-weight: 600; cursor: pointer; }
+        .tab-item.active { color: var(--primary); }
+        .tab-icon { font-size: 20px; display: block; margin-bottom: 2px; }
     </style>
 </head>
-<body id="main-body">
+<body>
 
 <header>
     <div class="app-title">SACRED STEPS</div>
@@ -52,38 +68,27 @@
 </header>
 
 <div id="page-home" class="page">
-    
-    <div id="catalog-view">
-        <h2 style="margin-top:0; font-weight: 800;">My Journeys</h2>
-        <div class="card" onclick="openItinerary('galilee')">
-            <img src="assets/images/sea-of-galilee.jpg" alt="Galilee">
-            <div style="padding: 15px;">
-                <span style="color:var(--accent); font-size:10px; font-weight:bold;">ACTIVE NOW</span>
-                <h3 style="margin:5px 0; font-size:1.2rem;">The Way of the Galilee</h3>
-                <p style="font-size:12px; color:#666; margin:0;">3 Days • 5 Locations</p>
-            </div>
+    <h2 style="margin-top:0; font-weight: 800;">My Journeys</h2>
+    <div class="card" onclick="activateTrip('galilee')">
+        <img src="assets/images/sea-of-galilee.jpg" alt="Galilee">
+        <div style="padding: 15px;">
+            <span style="color:var(--accent); font-size:10px; font-weight:bold;">ACTIVE NOW</span>
+            <h3 style="margin:5px 0; font-size:1.2rem;">The Way of the Galilee</h3>
+            <p style="font-size:12px; color:#666; margin:0;">3 Days • 4 Locations Unlocked</p>
         </div>
-        </div>
-
-    <div id="itinerary-summary-container">
-        <button class="btn-breadcrumb to-journeys" onclick="backToJourneys()">‹ Back to All Journeys</button>
-        <h2 style="margin-top:0; font-weight: 800;">Galilee Itinerary</h2>
-        <p style="color:var(--gray); font-size: 14px; margin-bottom: 20px;">Tap any location below to open the full historical guide.</p>
-        <div id="itinerary-summary-list">
-            </div>
-    </div>
-
-    <div id="full-guide-container">
-        <button class="btn-breadcrumb to-itinerary" onclick="backToItinerary()">‹ Back to Itinerary</button>
-        <h2 id="deep-dive-title" style="margin:0 0 10px 0; color:var(--primary);"></h2>
-        <img id="deep-dive-hero" src="" style="width:100%; height:200px; object-fit:cover; border-radius:15px; margin-bottom:20px;">
-        <div id="deep-dive-content">
-            </div>
     </div>
 </div>
 
-<div id="page-map" class="page hidden" style="padding:0;">
+<div id="page-map" class="page hidden" style="padding:0; position: relative;">
     <div id="map"></div>
+    
+    <div id="map-preview-card" onclick="openFullGuideFromMap()">
+        <img id="preview-thumb" src="" class="preview-img">
+        <div class="preview-details">
+            <h3 id="preview-name" class="preview-title"></h3>
+            <p class="preview-cta">View Full Historical Guide ›</p>
+        </div>
+    </div>
 </div>
 
 <div id="page-contact" class="page hidden">
@@ -91,14 +96,23 @@
     <p>We are here to help. Send us a message.</p>
 </div>
 
+<div id="guide-view" class="full-overlay">
+    <div class="overlay-header">
+        <h3 id="guide-title" style="margin:0; color:var(--primary);"></h3>
+        <button class="btn-close" onclick="closeGuide()">Close</button>
+    </div>
+    <div id="guide-content" style="padding:20px;">
+        </div>
+</div>
+
 <div class="tab-bar">
-    <div id="tab-home" class="tab-item active" onclick="nav('home', this)">
+    <div class="tab-item active" onclick="nav('home', this)">
         <span class="tab-icon">🏠</span>Home
     </div>
-    <div id="tab-map" class="tab-item" onclick="nav('map', this)">
+    <div class="tab-item" onclick="nav('map', this)">
         <span class="tab-icon">📍</span>Map
     </div>
-    <div id="tab-contact" class="tab-item" onclick="nav('contact', this)">
+    <div class="tab-item" onclick="nav('contact', this)">
         <span class="tab-icon">📧</span>Support
     </div>
 </div>
@@ -106,125 +120,91 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const tourData = {
-        'jerusalem': { name: 'Jerusalem', coords: [31.768, 35.213], teaser: 'The spiritual heart of the world, home to thousands of years of bibical history.', history: 'Jerusalem has been a sacred site for millennia...', quote: '"Pray for the peace of Jerusalem: May those who love you be secure." - Psalm 122:6', verse: 'Micah 4:2...', img: 'assets/images/jerusalem.jpg' },
-        'capernaum': { name: 'Capernaum', coords: [32.880, 35.575], teaser: 'Jesus\'s base of operations in Galilee. Explore the synagogue ruins.', history: 'A thriving fishing village in the 1st century...', quote: 'Built over the foundations of the synagogue...', verse: 'Matthew 4:13...', img: 'assets/images/capernaum.jpg' },
-        'sea-of-galilee': { name: 'Sea of Galilee', coords: [32.82, 35.58], teaser: 'The freshwater lake where Jesus walked on water.', history: 'Setting for many recorded miracles...', quote: ' सेटिंग for both tranquil teachings and miraculous storms.', verse: 'Mark 1:16...', img: 'assets/images/sea-of-galilee.jpg' }
+        'jerusalem': { name: 'Jerusalem', coords: [31.768, 35.213], history: 'Jerusalem has been a sacred site for millennia...', quote: '"Pray for the peace of Jerusalem..."', verse: 'Micah 4:2...', img: 'assets/images/jerusalem.jpg' },
+        'capernaum': { name: 'Capernaum', coords: [32.880, 35.575], history: 'Jesus\'s base of operations in Galilee...', quote: 'Built over the foundations of the synagogue...', verse: 'Matthew 4:13...', img: 'assets/images/capernaum.jpg' },
+        'sea-of-galilee': { name: 'Sea of Galilee', coords: [32.82, 35.58], history: 'Setting for many recorded miracles...', quote: 'Setting for tranquil teachings and miraculous storms.', verse: 'Mark 1:16...', img: 'assets/images/sea-of-galilee.jpg' },
+        'magdala': { name: 'Magdala', coords: [32.830, 35.526], history: 'Home of Mary Magdalene, featuring an incredibly preserved 1st-century synagogue.', quote: 'A significant archaeological discovery on the shores of the Galilee.', verse: 'Luke 8:1-2 - Soon afterward he went on through cities and villages, proclaiming and bringing the good news of the kingdom of God...', img: 'assets/images/magdala.jpg' }
     };
 
     let map;
-    const mainBody = document.getElementById('main-body');
+    let currentLocKey = null; // Tracks which pin is tapped
 
-    // --- FUNCTION: STRING TRUNCATION (Kept) ---
-    function truncateString(str) {
-        if (str.length > 60) { return str.substring(0, 60) + '...'; }
-        return str;
-    }
-
-    // --- NAVIGATION LOGIC (REFINED for tiered home) ---
+    // 1. Navigation Logic
     function nav(pageId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
         document.getElementById('page-' + pageId).classList.remove('hidden');
         document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
         
-        // KEY REQUIREMENT: If they click 'Home' tab, they reset to the top-level catalog view
-        if(pageId === 'home') {
-            closeItinerary(); 
-        }
+        // Hide map preview when leaving map page
+        if(pageId !== 'map') hideMapPreview();
+
         if(pageId === 'map') setTimeout(initMap, 100);
     }
 
-    // --- STATE 1 -> STATE 2: CATALONG TO ITINERARY ---
-    function openItinerary(tripId) {
-        if(tripId !== 'galilee') return;
-        const listContainer = document.getElementById('itinerary-summary-list');
-        listContainer.innerHTML = ''; // Clear old list
-        
-        for (let key in tourData) {
-            const loc = tourData[key];
-            const summaryCard = document.createElement('div');
-            summaryCard.className = 'list-card';
-            summaryCard.onclick = () => openGuide(key); // Next stage: The Guide View
-            summaryCard.innerHTML = `
-                <img src="${loc.img}" class="list-img">
-                <div class="list-details">
-                    <h4 style="margin:0 0 5px 0;">${loc.name}</h4>
-                    <p class="truncate">${truncateString(loc.teaser)}</p>
-                </div>
-                <div style="padding-right:15px; color:#ccc; font-size:20px;">›</div>
-            `;
-            listContainer.appendChild(summaryCard);
-        }
-        // State Toggle: Add class to body to show itinerary summary view
-        mainBody.classList.remove('guide-active');
-        mainBody.classList.add('itinerary-active');
+    // 2. Activate Trip from Home
+    function activateTrip(trip) {
+        nav('map', document.querySelectorAll('.tab-item')[1]);
     }
 
-    // --- STATE 2 -> STATE 1: BREADCRUMB NAVIGATION ---
-    function backToJourneys() {
-        mainBody.classList.remove('itinerary-active');
-    }
-
-    function closeItinerary() { // Universal function to reset all navigation
-        mainBody.classList.remove('itinerary-active');
-        mainBody.classList.remove('guide-active');
-    }
-
-    // --- STATE 2 -> STATE 3: ITINERARY TO FULL GUIDE (NEW DYNAMIC VIEW) ---
-    // This now injects the deep-dive content directly into #page-home
-    function openGuide(locKey) {
-        const loc = tourData[locKey];
-        const deepDiveContent = document.getElementById('deep-dive-content');
-        
-        document.getElementById('deep-dive-title').innerText = loc.name;
-        document.getElementById('deep-dive-hero').src = loc.img;
-        
-        deepDiveContent.innerHTML = `
-            <div class="deep-dive-box"><div class="section-h">Historical Significance</div><p style="margin:0; line-height:1.6; color:#333;">${loc.history}</p></div>
-            <div class="deep-dive-box"><div class="section-h">Reflection</div><p style="margin:0; font-style:italic; color:#555;">${loc.quote}</p></div>
-            <div class="deep-dive-box"><div class="section-h">Biblical Context</div><div class="verse-block">${loc.verse}</div></div>
-            <button onclick="viewOnMap([${loc.coords}])" class="btn-map-nav">📍 View on Map</button>
-        `;
-        // State Toggle: Add class to body to show the full deep-dive guide view
-        mainBody.classList.remove('itinerary-active');
-        mainBody.classList.add('guide-active');
-    }
-
-    // --- STATE 3 -> STATE 2: BREADCRUMB NAVIGATION (NEW) ---
-    function backToItinerary() {
-        mainBody.classList.remove('guide-active');
-        mainBody.classList.add('itinerary-active');
-    }
-
-    // --- STATE 3 -> MAP (REFINED FLOW) ---
-    function viewOnMap(coords) {
-        // We stay in the 'active' journey, we just switch tabs.
-        // We do NOT reset the guide-active state.
-        nav('map', document.getElementById('tab-map'));
-        // Focus the map
-        setTimeout(() => map.flyTo(coords, 14), 200);
-    }
-
-    // --- MAP LOGIC (Kept) ---
+    // 3. Initialize Map with Pins (UPDATED)
     function initMap() {
         if(map) { map.invalidateSize(); return; }
-        map = L.map('map', { zoomControl: false }).setView([32.8, 35.5], 11);
+        map = L.map('map', { zoomControl: false }).setView([32.85, 35.55], 11);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-        for (let key in tourData) { L.marker(tourData[key].coords).addTo(map); }
+
+        for (let key in tourData) {
+            let loc = tourData[key];
+            let marker = L.marker(loc.coords).addTo(map);
+            
+            // Tapping a pin calls showMapPreview, not showGuide
+            marker.on('click', () => showMapPreview(key));
+        }
+        // Click on map to hide preview
+        map.on('click', hideMapPreview);
     }
 
-if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js')
-            .then(registration => {
-                console.log('Sacred Steps: Service Worker registered successfully:', registration.scope);
-            })
-            .catch(error => {
-                console.log('Sacred Steps: Service Worker registration failed:', error);
-            });
-        });
-    } else {
-        console.log('Service Workers are not supported in this browser.');
+    // 4. --- SHOW MAP PREVIEW CARD (NEW) ---
+    function showMapPreview(locKey) {
+        currentLocKey = locKey; // Track which location is active
+        const loc = tourData[locKey];
+        const card = document.getElementById('map-preview-card');
+        
+        document.getElementById('preview-name').innerText = loc.name;
+        document.getElementById('preview-thumb').src = loc.img;
+        
+        card.classList.add('show');
+        map.panTo(loc.coords);
+    }
+
+    function hideMapPreview() {
+        document.getElementById('map-preview-card').classList.remove('show');
+        currentLocKey = null;
+    }
+
+    // 5. --- OPEN FULL GUIDE FROM MAP (NEW) ---
+    // User taps the dynamic preview card to "drill down"
+    function openFullGuideFromMap() {
+        if(!currentLocKey) return; // Safety check
+        const loc = tourData[currentLocKey];
+        const contentContainer = document.getElementById('guide-content');
+        
+        hideMapPreview(); // Hide the small card
+
+        // Build the multi-section deep dive
+        document.getElementById('guide-title').innerText = loc.name;
+        contentContainer.innerHTML = `
+            <img src="${loc.img}" style="width:100%; height:180px; object-fit:cover; border-radius:15px; margin-bottom:20px;">
+            <div class="guide-section"><div class="section-h">Historical Significance</div><p style="margin:0; line-height:1.6; color:#333;">${loc.history}</p></div>
+            <div class="guide-section"><div class="section-h">Reflection</div><p style="margin:0; font-style:italic; color:#555;">${loc.quote}</p></div>
+            <div class="guide-section"><div class="section-h">Biblical Context</div><div class="verse-box">${loc.verse}</div></div>
+        `;
+        // Show the overlay
+        document.getElementById('guide-view').style.display = 'block';
+    }
+
+    function closeGuide() {
+        document.getElementById('guide-view').style.display = 'none';
     }
 </script>
 </body>
