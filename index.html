@@ -212,6 +212,20 @@
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
         for (let key in tourData) { L.marker(tourData[key].coords).addTo(map); }
     }
+
+if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js')
+            .then(registration => {
+                console.log('Sacred Steps: Service Worker registered successfully:', registration.scope);
+            })
+            .catch(error => {
+                console.log('Sacred Steps: Service Worker registration failed:', error);
+            });
+        });
+    } else {
+        console.log('Service Workers are not supported in this browser.');
+    }
 </script>
 </body>
 </html>
