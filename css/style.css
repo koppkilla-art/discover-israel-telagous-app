@@ -1,56 +1,53 @@
-/* --- APP VARIABLES --- */
+/* --- 1. GLOBAL VARIABLES & RESET --- */
 :root { 
     --primary: #0038b8; /* Rich Blue */
     --bg: #f8f9fa; /* Light Gray Background */
     --white: #ffffff; 
     --text: #1a1a1a; 
-    --gray: #888888; /* Text for subtitles */
+    --gray: #888888; /* For subtitles and descriptions */
     --accent: #27ae60; /* Unlocked Green */
     --locked: #777777; /* Locked Gray */
     --danger: #c0392b; /* Reset Red */
 }
 
-/* --- RESET & BASE --- */
 body, html { 
-    margin: 0; 
-    padding: 0; 
-    height: 100%; 
+    margin: 0; padding: 0; height: 100%; 
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-    background: var(--bg); 
-    color: var(--text); 
-    overflow: hidden; /* Standard for PWA */
+    background: var(--bg); color: var(--text); overflow: hidden; /* Standard for PWA */
 }
 
-/* --- HEADER --- */
+/* --- 2. GLOBAL COMPONENTS --- */
 header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    padding: 15px 20px; 
-    background: white; 
-    border-bottom: 1px solid #eee; 
-    z-index: 1000; 
-    position: relative;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 15px 20px; background: white; border-bottom: 1px solid #eee; 
+    z-index: 1000; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
-.app-title { 
-    font-weight: 800; 
-    font-size: 1.1rem; 
-    color: var(--primary); 
-    letter-spacing: -0.5px;
-}
+.app-title { font-weight: 800; font-size: 1.1rem; color: var(--primary); letter-spacing: -0.5px; }
 
-/* --- PAGE CONTAINERS --- */
+/* Page Containers */
 .page { 
     height: calc(100vh - 140px); /* Adjusts for Header and Tab Bar */
-    overflow-y: auto; 
-    padding: 20px; 
-    box-sizing: border-box; 
-    padding-bottom: 80px; /* Buffer for Tab Bar */
+    overflow-y: auto; padding: 20px; box-sizing: border-box; 
+    padding-bottom: 100px; /* Essential buffer for the Tab Bar */
 }
 .hidden { display: none !important; }
 
-/* --- --- TEXT TRUNCATION (CRUCIAL ADDITION) --- --- */
+/* Global Buttons & Forms (Used in Contact/Support) */
+.submit-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+.contact-form input, .contact-form textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+
+
+/* --- 3. TAB BAR NAVIGATION --- */
+.tab-bar { 
+    position: fixed; bottom: 0; width: 100%; background: white; 
+    display: flex; padding: 10px 0 25px 0; border-top: 1px solid #eee; z-index: 5000; 
+}
+.tab-item { flex: 1; text-align: center; color: #aaa; font-size: 10px; font-weight: 600; cursor: pointer; }
+.tab-item.active { color: var(--primary); }
+.tab-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+
+
+/* --- 4. TEXT TRUNCATION (Kept and Crucial) --- */
 .truncate {
     white-space: nowrap;      /* Don't wrap lines */
     overflow: hidden;         /* Hide extra text */
@@ -59,22 +56,51 @@ header {
     max-width: 100%;          /* Don't expand beyond parent */
 }
 
-/* --- CATALOG CARDS (HOME PAGE) --- */
+
+/* --- 5. CATALOG CARDS (HOME STATE 1) --- */
 .card { 
-    background: white; 
-    border-radius: 20px; 
-    overflow: hidden; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-    margin-bottom: 20px; 
-    cursor: pointer; 
-    border: 1px solid #eee; 
-    transition: transform 0.2s ease;
+    background: white; border-radius: 20px; overflow: hidden; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; 
+    cursor: pointer; border: 1px solid #eee; transition: transform 0.2s ease;
 }
 .card:active { transform: scale(0.98); }
 .card img { width: 100%; height: 180px; object-fit: cover; }
 .card-content { padding: 15px; }
 
-/* --- --- LIST CARDS (ITINERARY VIEW ADDITION) --- --- */
+
+/* --- --- --- --- NEW: TIERED HOME PAGE NAVIGATION --- --- --- --- */
+
+/* --- 6. STATE TOGGLING LOGIC (NEW) --- */
+/* These rules control which dynamic view is visible within #page-home */
+
+/* Default: Show State 1 (Catalog) */
+#page-home #catalog-view { display: block; }
+#page-home #itinerary-summary-container,
+#page-home #full-guide-container { display: none; }
+
+/* class .itinerary-active added to body shows State 2 (Summary List) */
+.itinerary-active #page-home #itinerary-summary-container { display: block; }
+.itinerary-active #page-home #catalog-view,
+.itinerary-active #page-home #full-guide-container { display: none; }
+
+/* class .guide-active added to body shows State 3 (Deep-Dive Guide) */
+.guide-active #page-home #full-guide-container { display: block; }
+.guide-active #page-home #catalog-view,
+.guide-active #page-home #itinerary-summary-container { display: none; }
+
+
+/* --- 7. MULTI-LEVEL BACK BUTTONS (NEW) --- */
+.btn-breadcrumb {
+    background: none; border: none; color: var(--gray); font-size: 14px;
+    font-weight: 600; padding: 10px 0; cursor: pointer; display: none; margin-bottom: 10px;
+}
+/* Show "Back to Journeys" when Itinerary Summary is active */
+.itinerary-active .btn-breadcrumb.to-journeys { display: block; }
+/* Show "Back to Itinerary" when Full Guide is active */
+.guide-active .btn-breadcrumb.to-itinerary { display: block; }
+
+
+/* --- 8. SUMMARY LIST CARDS (HOME STATE 2) --- */
 .list-card { 
     background: white; border-radius: 15px; overflow: hidden; 
     box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-bottom: 15px; 
@@ -84,68 +110,42 @@ header {
 .list-card:active { transform: scale(0.97); }
 .list-img { width: 70px; height: 70px; object-fit: cover; }
 .list-details { 
-    padding: 15px; flex-grow: 1; 
-    min-width: 0; /* CRUCIAL: Must be 0 for child .truncate to work */
+    padding: 15px; flex-grow: 1; min-width: 0; /* min-width: 0 is key for truncation inside flex */
 }
 
-/* --- --- FULL SCREEN OVERLAYS (ADDITION) --- --- */
-.full-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: var(--bg); z-index: 6000; display: none; overflow-y: auto;
-    padding-bottom: 100px; box-sizing: border-box;
+
+/* --- 9. FULL DEEP-DIVE GUIDE (HOME STATE 3) --- */
+/* (These replace the old full-screen overlay styles) */
+.deep-dive-box { 
+    background: white; padding: 20px; border-radius: 15px; 
+    border: 1px solid #eee; margin-bottom: 20px; 
 }
-.overlay-header {
-    position: sticky; top: 0; background: var(--bg); padding: 15px 20px;
-    display: flex; justify-content: space-between; align-items: center; 
-    border-bottom: 1px solid #eee; z-index: 10;
+.section-h { 
+    font-size: 0.8rem; font-weight: 800; color: var(--gray); 
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; 
 }
-.btn-close { 
-    border: none; background: #eee; padding: 10px 15px; 
-    border-radius: 20px; font-weight: bold; cursor: pointer; color: #333;
+.verse-block { 
+    background: #f0f4ff; border-left: 4px solid var(--primary); 
+    padding: 15px; font-style: italic; color: #333; border-radius: 0 8px 8px 0; 
+}
+.btn-map-nav { 
+    width: 100%; padding: 15px; background: var(--primary); color: white; 
+    border: none; border-radius: 12px; font-weight: bold; margin-top: 20px; font-size: 16px; 
 }
 
-/* --- --- DEEP-DIVE GUIDE SECTIONS (ADDITION) --- --- */
-.guide-section { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee; }
-.section-h { font-size: 0.8rem; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-.verse-box { background: #f0f4ff; border-left: 4px solid var(--primary); padding: 15px; font-style: italic; color: #333; border-radius: 0 8px 8px 0; }
-.btn-map-nav { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; margin-top: 20px; font-size: 16px; }
 
-/* --- MAP AREA --- */
+/* --- 10. MAP UI & GPS TRIGGERS --- */
 #map { height: 100%; width: 100%; }
 
-/* --- --- MAP PINS (PULSING ADDITION) --- --- */
 .custom-pin { 
     width: 22px; height: 22px; border-radius: 50%; background: var(--locked); 
     border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3); transition: 0.2s; 
 }
-.custom-pin.active { 
-    background: var(--unlocked); animation: pulse 2s infinite; 
-}
-@keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(39, 174, 96, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(39, 174, 96, 0); } 100% { box-shadow: 0 0 0 0px rgba(39, 174, 96, 0); } }
+.custom-pin.active { background: var(--accent); animation: pulse 2s infinite; }
 
-
-/* --- BOTTOM TAB BAR --- */
-.tab-bar { 
-    position: fixed; 
-    bottom: 0; 
-    width: 100%; 
-    background: white; 
-    display: flex; 
-    padding: 10px 0 25px 0; 
-    border-top: 1px solid #eee; 
-    z-index: 5000; 
+/* Pulsing effect for GPS triggers */
+@keyframes pulse { 
+    0% { box-shadow: 0 0 0 0px rgba(39, 174, 96, 0.7); } 
+    70% { box-shadow: 0 0 0 15px rgba(39, 174, 96, 0); } 
+    100% { box-shadow: 0 0 0 0px rgba(39, 174, 96, 0); } 
 }
-.tab-item { 
-    flex: 1; 
-    text-align: center; 
-    color: #aaa; 
-    font-size: 10px; 
-    font-weight: 600; 
-    cursor: pointer; 
-}
-.tab-item.active { color: var(--primary); }
-.tab-icon { font-size: 20px; display: block; margin-bottom: 2px; }
-
-/* --- FORM (USED ON SUPPORT PAGE) --- */
-.contact-form input, .contact-form textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-.submit-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
