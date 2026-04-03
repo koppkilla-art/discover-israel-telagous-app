@@ -129,6 +129,7 @@
         <textarea id="admin-text" placeholder="Message..." style="width:100%; padding:10px; height:80px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
         <select id="admin-image" style="width:100%; padding:10px; margin-bottom:20px; border-radius:8px;">
             <option value="">No Image</option>
+            <option value="assets/images/capernaum-biblical-sites.jpg">Capernaum Biblical Sites</option>
             <option value="assets/images/group-photo.jpg">Group Photo</option>
             <option value="assets/images/weather-alert.jpg">Weather Alert</option>
         </select>
@@ -159,13 +160,25 @@
     // DATA LAYER
     const tourData = {
         'jerusalem': { name: 'Jerusalem', coords: [31.768, 35.213], teaser: 'The heart of the world.', history: 'Jerusalem has been a sacred site for millennia...', verse: 'Micah 4:2', img: 'assets/images/jerusalem.jpg', liveUpdates: [] },
-        'capernaum': { name: 'Capernaum', coords: [32.880, 35.575], teaser: 'Jesus\' base in Galilee.', history: 'A fishing village ruins...', verse: 'Matthew 4:13', img: 'assets/images/capernaum.jpg', liveUpdates: [] },
+        'capernaum': { name: 'Capernaum', coords: [32.880, 35.575], teaser: 'Jesus\' base in Galilee.', history: 'A fishing village ruins...', verse: 'Matthew 4:13', img: 'assets/images/capernaum.jpg', liveUpdates: [{
+                title: "Capernaum Biblical Sites",
+                text: "The place where Jesus began His ministry in Galilee, healed the sick, taught in the synagogue, and called His first disciples.",
+                img: "assets/images/capernaum-biblical-sites.jpg",
+                time: "09:00 AM"
+            }] },
         'sea-of-galilee': { name: 'Sea of Galilee', coords: [32.82, 35.58], teaser: 'The freshwater lake.', history: 'Setting for many miracles...', verse: 'Mark 1:16', img: 'assets/images/sea-of-galilee.jpg', liveUpdates: [] }
     };
 
     let map, currentLocKey = null;
     let currentUser = null;
-    let liveFeed = [];
+    let liveFeed = [
+        {
+        title: "Capernaum Biblical Sites",
+        text: "The place where Jesus began His ministry in Galilee, healed the sick, taught in the synagogue, and called His first disciples.",
+        img: "assets/images/capernaum-biblical-sites.jpg",
+        time: "09:00 AM"
+    }
+    ];
 
     // LOGIN SYSTEM
     function handleLogin() {
