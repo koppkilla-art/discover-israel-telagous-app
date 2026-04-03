@@ -240,22 +240,7 @@ function openFullGuideFromMap() {
     // We must manually trigger the 'nav' function to switch the user's view 
     // from the Map tab back to the Home tab where the guide is now visible.
     nav('home', document.getElementById('tab-home'));
-}
-    
-
-    // 2. Hide the map preview card immediately
-    hideMapPreview();
-
-    // 3. Trigger the existing 'openGuide' function with our active key
-    // This re-uses the logic we already built for the home page list
-    openGuide(currentLocKey);
-    
-    // 4. Switch the view back to the Home tab where the Guide lives
-    // This ensures the user sees the content we just 'injected'
-    nav('home', document.getElementById('tab-home'));
-}
-
-    
+}  
 
     // --- STARTUP LOGIC ---
     window.onload = () => {
