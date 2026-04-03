@@ -93,6 +93,8 @@ header {
     border-radius: 16px; padding: 12px; display: none; align-items: center;
     box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 4500; 
     border: 1px solid rgba(0,0,0,0.05);
+    pointer-events: auto !important; 
+    cursor: pointer;
 }
 #map-preview-card.show { display: flex; }
 .preview-img { width: 55px; height: 55px; object-fit: cover; border-radius: 10px; margin-right: 12px; }
