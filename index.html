@@ -149,21 +149,25 @@
     }
 
     // --- UPDATED NAVIGATION LOGIC ---
-    function nav(pageId, el, preserveState = false) {
-        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-        document.getElementById('page-' + pageId).classList.remove('hidden');
-        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        
-        hideMapPreview();
+function nav(pageId, el, preserveState = false) {
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.getElementById('page-' + pageId).classList.remove('hidden');
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    
+    hideMapPreview();
 
-        // Reset Home state ONLY if user clicks Home tab directly (not via Map drill-down)
-        if(pageId === 'home' && !preserveState) {
-            closeItinerary();
-        }
-
-        if(pageId === 'map') setTimeout(initMap, 200);
+    // NEW: If they go to the feed, refresh the posts
+    if(pageId === 'feed') {
+        renderFeed();
     }
+
+    if(pageId === 'home' && !preserveState) {
+        closeItinerary();
+    }
+
+    if(pageId === 'map') setTimeout(initMap, 200);
+}
 
     // --- HOME STATE LOGIC ---
     function openItinerary(tripId) {
@@ -348,7 +352,6 @@ function submitPost() {
     imgInput.value = '';
     document.getElementById('admin-panel').classList.add('hidden');
 }
-    }
 </script>
 </body>
 </html>
