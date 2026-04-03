@@ -45,6 +45,16 @@
 </head>
 <body id="main-body">
 
+    <div id="login-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--primary); z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; box-sizing:border-box; color:white;">
+    <h1 style="margin-bottom:10px;">DISCOVER ISRAEL</h1>
+    <p style="margin-bottom:30px; opacity:0.8;">Expedition 2026 Login</p>
+    
+    <input id="login-user" placeholder="Username" style="width:100%; padding:15px; border-radius:10px; border:none; margin-bottom:15px; font-size:16px;">
+    <input id="login-pass" type="password" placeholder="Password" style="width:100%; padding:15px; border-radius:10px; border:none; margin-bottom:25px; font-size:16px;">
+    
+    <button onclick="handleLogin()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--accent); color:white; font-weight:bold; font-size:18px;">Sign In</button>
+</div>
+    
 <header>
     <div class="app-title">DISCOVER ISRAEL</div>
     <div style="font-size: 1.2rem; background:#eee; padding:5px; border-radius:50%;">👤</div>
@@ -109,6 +119,33 @@
         <input id="post-img" placeholder="Image URL (optional)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;">
         <button onclick="submitPost()" class="btn-map-nav" style="margin-top:0; background: var(--accent);">🚀 Push to Live Feed</button>
     </div>
+
+    <div id="page-admin" class="page hidden">
+    <h2 style="margin-top:0;">Admin Console</h2>
+    <div class="deep-dive-box">
+        <label class="section-h">Target Location</label>
+        <select id="admin-target-loc" style="width:100%; padding:10px; margin-bottom:15px; border-radius:8px;">
+            <option value="all">Global Update (Updates Tab Only)</option>
+            <option value="jerusalem">Jerusalem</option>
+            <option value="capernaum">Capernaum</option>
+            <option value="sea-of-galilee">Sea of Galilee</option>
+        </select>
+
+        <label class="section-h">Update Content</label>
+        <input id="admin-title" placeholder="Headline" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+        <textarea id="admin-text" placeholder="Message..." style="width:100%; padding:10px; height:80px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
+        
+        <label class="section-h">Predefined Image</label>
+        <select id="admin-image" style="width:100%; padding:10px; margin-bottom:20px; border-radius:8px;">
+            <option value="">No Image</option>
+            <option value="assets/images/group-photo.jpg">Group Photo</option>
+            <option value="assets/images/weather-alert.jpg">Weather Alert</option>
+            <option value="assets/images/discovery.jpg">Archaeology Discovery</option>
+        </select>
+
+        <button onclick="processAdminPush()" class="btn-map-nav" style="background:var(--accent);">🚀 Push Live Update</button>
+    </div>
+    
 </div>
     
 <div class="tab-bar">
@@ -124,6 +161,9 @@
     <div id="tab-contact" class="tab-item" onclick="nav('contact', this)">
         <span class="tab-icon">📧</span>Support
     </div>
+    <div id="tab-admin" class="tab-item hidden" onclick="nav('admin', this)">
+    <span class="tab-icon">🛠️</span>Admin
+    </div>
 
 </div>
 
@@ -132,9 +172,9 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const tourData = {
-        'jerusalem': { name: 'Jerusalem', coords: [31.768, 35.213], teaser: 'The spiritual heart of the world.', history: 'Jerusalem has been a sacred site for millennia...', quote: 'Pray for the peace of Jerusalem...', verse: 'Micah 4:2...', img: 'assets/images/jerusalem.jpg' },
-        'capernaum': { name: 'Capernaum', coords: [32.880, 35.575], teaser: 'Jesus\' base of operations in Galilee.', history: 'A thriving fishing village in the 1st century...', quote: 'Built over the foundations of the synagogue...', verse: 'Matthew 4:13...', img: 'assets/images/capernaum.jpg' },
-        'sea-of-galilee': { name: 'Sea of Galilee', coords: [32.82, 35.58], teaser: 'The lake where Jesus walked on water.', history: 'Setting for many recorded miracles...', quote: 'Tranquil teachings and storms.', verse: 'Mark 1:16...', img: 'assets/images/sea-of-galilee.jpg' }
+        'jerusalem': { name: 'Jerusalem', coords: [31.768, 35.213], teaser: 'The spiritual heart of the world.', history: 'Jerusalem has been a sacred site for millennia...', quote: 'Pray for the peace of Jerusalem...', verse: 'Micah 4:2...', img: 'assets/images/jerusalem.jpg', liveUpdates: [] },
+        'capernaum': { name: 'Capernaum', coords: [32.880, 35.575], teaser: 'Jesus\' base of operations in Galilee.', history: 'A thriving fishing village in the 1st century...', quote: 'Built over the foundations of the synagogue...', verse: 'Matthew 4:13...', img: 'assets/images/capernaum.jpg', liveUpdates: [] },
+        'sea-of-galilee': { name: 'Sea of Galilee', coords: [32.82, 35.58], teaser: 'The lake where Jesus walked on water.', history: 'Setting for many recorded miracles...', quote: 'Tranquil teachings and storms.', verse: 'Mark 1:16...', img: 'assets/images/sea-of-galilee.jpg', liveUpdates: [] }
     };
 
     let map;
@@ -145,27 +185,117 @@
         return str.length > 60 ? str.substring(0, 60) + '...' : str;
     }
 
-    // --- UPDATED NAVIGATION LOGIC ---
+  // --- GLOBAL STATE ---
+let currentUser = null;
+let liveFeed = []; // Holds the "Updates" tab posts
+
+// --- 1. THE NEW LOGIN LOGIC ---
+function handleLogin() {
+    const user = document.getElementById('login-user').value.toLowerCase();
+    const pass = document.getElementById('login-pass').value;
+
+    if (user === "user" && pass === "1234") {
+        loginSuccess("user");
+    } else if (user === "admin" && pass === "4321") {
+        loginSuccess("admin");
+    } else {
+        alert("Invalid credentials. Please try again.");
+    }
+}
+
+function loginSuccess(role) {
+    currentUser = role;
+    // Hide the login screen
+    document.getElementById('login-screen').style.display = 'none';
+    
+    // Show Admin tab ONLY if they are the admin
+    if (role === "admin") {
+        document.getElementById('tab-admin').classList.remove('hidden');
+    }
+    
+    // Start the app at Home
+    nav('home', document.getElementById('tab-home'));
+}
+
+// --- 2. THE NEW NAVIGATION LOGIC (Supports Admin Tab) ---
 function nav(pageId, el, preserveState = false) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-    document.getElementById('page-' + pageId).classList.remove('hidden');
+    const targetPage = document.getElementById('page-' + pageId);
+    if (targetPage) targetPage.classList.remove('hidden');
+    
     document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
+    if (el) el.classList.add('active');
     
     hideMapPreview();
 
-    // NEW: If they go to the feed, refresh the posts
-    if(pageId === 'feed') {
-        renderFeed();
-    }
+    // Refresh feed if they click Updates
+    if (pageId === 'feed') renderFeed();
 
-    if(pageId === 'home' && !preserveState) {
+    // Reset Home view if clicking Home tab directly
+    if (pageId === 'home' && !preserveState) {
         closeItinerary();
     }
 
-    if(pageId === 'map') setTimeout(initMap, 200);
+    if (pageId === 'map') setTimeout(initMap, 200);
 }
 
+// --- 3. THE ADMIN PUSH LOGIC ---
+function processAdminPush() {
+    const target = document.getElementById('admin-target-loc').value;
+    const title = document.getElementById('admin-title').value;
+    const text = document.getElementById('admin-text').value;
+    const img = document.getElementById('admin-image').value;
+
+    if (!title || !text) { 
+        alert("Please enter a headline and message."); 
+        return; 
+    }
+
+    const updateObj = { 
+        title, text, img, 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+    };
+
+    // Post to the Updates Tab
+    liveFeed.unshift(updateObj);
+
+    // If specific location, inject into tourData
+    if (target !== "all" && tourData[target]) {
+        if (!tourData[target].liveUpdates) tourData[target].liveUpdates = [];
+        tourData[target].liveUpdates.push(updateObj);
+    }
+
+    alert(`Successfully pushed to ${target === 'all' ? 'Updates Feed' : tourData[target].name}`);
+    
+    // Clear inputs
+    document.getElementById('admin-title').value = '';
+    document.getElementById('admin-text').value = '';
+    
+    // Switch to see the result
+    nav('feed', document.getElementById('tab-feed'));
+}
+
+function renderFeed() {
+    const container = document.getElementById('live-feed-container');
+    if (!container) return;
+    container.innerHTML = '';
+    liveFeed.forEach(post => {
+        const postEl = document.createElement('div');
+        postEl.className = 'deep-dive-box';
+        postEl.innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span class="section-h">Update</span>
+                <span style="font-size:10px; color:#aaa;">${post.time}</span>
+            </div>
+            ${post.img ? `<img src="${post.img}" style="width:100%; border-radius:10px; margin-bottom:10px;">` : ''}
+            <h4 style="margin:0;">${post.title}</h4>
+            <p style="margin:5px 0 0 0; font-size:14px;">${post.text}</p>
+        `;
+        container.appendChild(postEl);
+    });
+}  
+
+    
     // --- HOME STATE LOGIC ---
     function openItinerary(tripId) {
         const listContainer = document.getElementById('itinerary-summary-list');
@@ -201,22 +331,39 @@ function nav(pageId, el, preserveState = false) {
     }
 
     // --- THE CORE GUIDE INJECTION ---
-    function openGuide(locKey) {
-        const loc = tourData[locKey];
-        if (!loc) return;
-        
-        document.getElementById('deep-dive-title').innerText = loc.name;
-        document.getElementById('deep-dive-hero').src = loc.img;
-        document.getElementById('deep-dive-content').innerHTML = `
-            <div class="deep-dive-box"><div class="section-h">Historical Significance</div><p>${loc.history}</p></div>
-            <div class="deep-dive-box"><div class="section-h">Reflection</div><p>${loc.quote}</p></div>
-            <div class="deep-dive-box"><div class="section-h">Biblical Context</div><div class="verse-block">${loc.verse}</div></div>
-            <button onclick="viewOnMap([${loc.coords}], '${locKey}')" class="btn-map-nav">📍 View on Map</button>
-        `;
-        
-        mainBody.classList.remove('itinerary-active');
-        mainBody.classList.add('guide-active');
+function openGuide(locKey) {
+    const loc = tourData[locKey];
+    const contentContainer = document.getElementById('deep-dive-content');
+    
+    // Start with static content
+    let html = `
+        <div class="deep-dive-box"><div class="section-h">History</div><p>${loc.history}</p></div>
+        <div class="deep-dive-box"><div class="section-h">Bible Context</div><div class="verse-block">${loc.verse}</div></div>
+    `;
+
+    // ADD THE LIVE INJECTED CONTENT
+    if (loc.liveUpdates && loc.liveUpdates.length > 0) {
+        html += `<h3 style="margin: 20px 0 10px 0;">Live Updates for this Site</h3>`;
+        loc.liveUpdates.forEach(update => {
+            html += `
+                <div class="deep-dive-box" style="border: 2px solid var(--accent);">
+                    <div style="font-size:10px; color:var(--accent); font-weight:bold; margin-bottom:5px;">ADMIN UPDATE • ${update.time}</div>
+                    ${update.img ? `<img src="${update.img}" style="width:100%; border-radius:8px; margin-bottom:10px;">` : ''}
+                    <h4 style="margin:0;">${update.title}</h4>
+                    <p style="font-size:14px; margin-top:5px;">${update.text}</p>
+                </div>
+            `;
+        });
     }
+
+    html += `<button onclick="viewOnMap([${loc.coords}], '${locKey}')" class="btn-map-nav">📍 View on Map</button>`;
+    
+    document.getElementById('deep-dive-title').innerText = loc.name;
+    document.getElementById('deep-dive-hero').src = loc.img;
+    contentContainer.innerHTML = html;
+    
+    mainBody.classList.add('guide-active');
+}
 
     // --- FIXED MAP TO GUIDE DRILL-DOWN ---
     function openFullGuideFromMap() {
@@ -270,9 +417,11 @@ function nav(pageId, el, preserveState = false) {
         }, 300);
     }
 
-    window.onload = () => {
-        nav('home', document.getElementById('tab-home'));
-    };
+window.onload = () => {
+    // We don't call nav() here because the Login Screen is already visible 
+    // and covers everything until handleLogin() is called.
+    console.log("Discover Israel: Waiting for login...");
+};
 
 // 1. Initialize the feed array at the TOP of your script
     let liveFeed = [
@@ -283,25 +432,6 @@ function nav(pageId, el, preserveState = false) {
         time: "10:30 AM"
     }
 ];
-
-// 2. The logic to handle the Admin Posting
-function adminPost(title, text, imgUrl) {
-    console.log("Attempting to post:", title); // Debugging line
-    
-    const now = new Date();
-    const timeStr = now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
-    
-    // Add new post to the beginning of the array
-    liveFeed.unshift({ 
-        title: title, 
-        text: text, 
-        img: imgUrl, 
-        time: timeStr 
-    });
-    
-    renderFeed();
-    alert("Update pushed to Discover Israel feed!");
-}
 
 // 3. The logic to show the posts on the Updates page
 function renderFeed() {
@@ -327,43 +457,6 @@ function renderFeed() {
     });
 }
 
-// 4. The Bridge function for the Button
-function submitPost() {
-    console.log("Submit Button Clicked"); // Debugging line
-    
-    const titleInput = document.getElementById('post-title');
-    const textInput = document.getElementById('post-text');
-    const imgInput = document.getElementById('post-img');
-
-    if(!titleInput.value || !textInput.value) {
-        alert("Please enter a Headline and a Message.");
-        return;
-    }
-
-    // Push data
-    adminPost(titleInput.value, textInput.value, imgInput.value);
-
-    // Clear and Hide
-    titleInput.value = '';
-    textInput.value = '';
-    imgInput.value = '';
-    document.getElementById('admin-panel').classList.add('hidden');
-}
-    function showAdmin() {
-    console.log("Admin button tapped"); // Check your browser console to see if this appears
-    const pass = prompt("Enter Admin Password:");
-    
-    if (pass === "1234") {
-        const panel = document.getElementById('admin-panel');
-        if (panel) {
-            panel.classList.remove('hidden');
-            // Scroll to the panel so you can see it on small screens
-            panel.scrollIntoView({ behavior: 'smooth' });
-        }
-    } else if (pass !== null) {
-        alert("Incorrect Password");
-    }
-}
 </script>
 </body>
 </html>
