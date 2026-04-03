@@ -348,6 +348,21 @@ function submitPost() {
     imgInput.value = '';
     document.getElementById('admin-panel').classList.add('hidden');
 }
+    function showAdmin() {
+    console.log("Admin button tapped"); // Check your browser console to see if this appears
+    const pass = prompt("Enter Admin Password:");
+    
+    if (pass === "1234") {
+        const panel = document.getElementById('admin-panel');
+        if (panel) {
+            panel.classList.remove('hidden');
+            // Scroll to the panel so you can see it on small screens
+            panel.scrollIntoView({ behavior: 'smooth' });
+        }
+    } else if (pass !== null) {
+        alert("Incorrect Password");
+    }
+}
 </script>
 </body>
 </html>
