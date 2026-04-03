@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Discover Israel | Expedition</title>
+    
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="icon" type="image/png" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Discover Israel">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="css/style.css">
     <base href="./"> 
-    <link rel="apple-touch-icon" href="logo.png">
-    <link rel="icon" type="image/png" href="logo.png">
+
     <style>
-        /* Essential Inline Fixes for Mobile Responsiveness */
+        /* Essential Inline Fixes for Mobile Navigation & Overlays */
         #page-map { padding: 0 !important; height: 100vh; position: absolute; top: 0; width: 100%; }
         
         #map-preview-card {
@@ -23,13 +27,13 @@
             backdrop-filter: blur(10px);
             border-radius: 16px; padding: 12px; display: none; align-items: center;
             box-shadow: 0 8px 32px rgba(0,0,0,0.15); 
-            z-index: 4000; /* Higher than map, lower than tab-bar */
+            z-index: 4000; 
             border: 1px solid rgba(0,0,0,0.05);
-            pointer-events: auto; /* Ensures clicks register */
+            pointer-events: auto;
         }
         #map-preview-card.show { display: flex; }
 
-        /* Navigation State Visibility */
+        /* Navigation State Visibility Logic */
         #page-home #catalog-view { display: block; }
         #page-home #itinerary-summary-container,
         #page-home #full-guide-container { display: none; }
@@ -46,22 +50,21 @@
 <body id="main-body">
 
 <div id="login-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--primary); z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; box-sizing:border-box; color:white; pointer-events: all !important;">
-    <h1 style="margin-bottom:10px;">DISCOVER ISRAEL</h1>
+    <h1 style="margin-bottom:10px; letter-spacing:-1px;">DISCOVER ISRAEL</h1>
     <p style="margin-bottom:30px; opacity:0.8;">Expedition 2026 Login</p>
     
-    <input id="login-user" placeholder="Username" style="width:100%; padding:15px; border-radius:10px; border:none; margin-bottom:15px; font-size:16px; position:relative; z-index:1000000;">
-    <input id="login-pass" type="password" placeholder="Password" style="width:100%; padding:15px; border-radius:10px; border:none; margin-bottom:25px; font-size:16px; position:relative; z-index:1000000;">
+    <input id="login-user" placeholder="Username" style="width:100%; padding:15px; border-radius:10px; border:none; margin-bottom:15px; font-size:16px; position:relative; z-index:1000001;">
+    <input id="login-pass" type="password" placeholder="Password" style="width:100%; padding:15px; border-radius:10px; border:none; margin-bottom:25px; font-size:16px; position:relative; z-index:1000001;">
     
-    <button onclick="handleLogin()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--accent); color:white; font-weight:bold; font-size:18px; cursor:pointer; position:relative; z-index:1000000; pointer-events: auto;">Sign In</button>
+    <button onclick="handleLogin()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--accent); color:white; font-weight:bold; font-size:18px; cursor:pointer; position:relative; z-index:1000001; pointer-events: auto;">Sign In</button>
 </div>
-    
+
 <header>
     <div class="app-title">DISCOVER ISRAEL</div>
     <div style="font-size: 1.2rem; background:#eee; padding:5px; border-radius:50%;">👤</div>
 </header>
 
 <div id="page-home" class="page">
-    
     <div id="catalog-view">
         <h2 style="margin-top:0; font-weight: 800;">My Journeys</h2>
         <div class="card" onclick="openItinerary('galilee')">
@@ -94,60 +97,45 @@
         <img id="preview-thumb" src="" class="preview-img">
         <div class="preview-details">
             <h3 id="preview-name" class="preview-title"></h3>
-            <p class="preview-cta">View Full Historical Guide ›</p>
+            <p class="preview-cta">View Details ›</p>
         </div>
     </div>
 </div>
 
+<div id="page-feed" class="page hidden">
+    <h2 style="margin-top:0; font-weight: 800;">Live Feed</h2>
+    <div id="live-feed-container"></div>
+</div>
+
 <div id="page-contact" class="page hidden">
-    <h2>Contact Support</h2>
+    <h2>Support</h2>
     <div class="deep-dive-box">
         <p><strong>Emergency:</strong> +972 50-000-0000</p>
         <p><strong>Email:</strong> guide@discoverisrael.com</p>
     </div>
+</div>
 
-    <div style="margin-top: 60px; padding-bottom: 100px; text-align: center; position: relative; z-index: 10000;">
-        <button onclick="showAdmin()" style="opacity: 0.2; background: none; border: 1px solid #ccc; padding: 10px; border-radius: 5px; color: #888; font-size: 10px; cursor: pointer; pointer-events: auto !important;">
-            Admin Access
-        </button>
-    </div>
-
-    <div id="admin-panel" class="hidden" style="margin-top: 20px; padding: 20px; background: #fff; border: 2px dashed var(--primary); border-radius: 15px;">
-        <h3 style="margin-top:0;">Post Live Update</h3>
-        <input id="post-title" placeholder="Headline" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;">
-        <textarea id="post-text" placeholder="Message..." style="width:100%; padding:12px; height:80px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;"></textarea>
-        <input id="post-img" placeholder="Image URL (optional)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;">
-        <button onclick="submitPost()" class="btn-map-nav" style="margin-top:0; background: var(--accent);">🚀 Push to Live Feed</button>
-    </div>
-
-    <div id="page-admin" class="page hidden">
+<div id="page-admin" class="page hidden">
     <h2 style="margin-top:0;">Admin Console</h2>
     <div class="deep-dive-box">
         <label class="section-h">Target Location</label>
         <select id="admin-target-loc" style="width:100%; padding:10px; margin-bottom:15px; border-radius:8px;">
-            <option value="all">Global Update (Updates Tab Only)</option>
+            <option value="all">Global Update (Updates Only)</option>
             <option value="jerusalem">Jerusalem</option>
             <option value="capernaum">Capernaum</option>
             <option value="sea-of-galilee">Sea of Galilee</option>
         </select>
-
-        <label class="section-h">Update Content</label>
         <input id="admin-title" placeholder="Headline" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
         <textarea id="admin-text" placeholder="Message..." style="width:100%; padding:10px; height:80px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
-        
-        <label class="section-h">Predefined Image</label>
         <select id="admin-image" style="width:100%; padding:10px; margin-bottom:20px; border-radius:8px;">
             <option value="">No Image</option>
             <option value="assets/images/group-photo.jpg">Group Photo</option>
             <option value="assets/images/weather-alert.jpg">Weather Alert</option>
-            <option value="assets/images/discovery.jpg">Archaeology Discovery</option>
         </select>
-
-        <button onclick="processAdminPush()" class="btn-map-nav" style="background:var(--accent);">🚀 Push Live Update</button>
+        <button onclick="processAdminPush()" class="btn-map-nav" style="background:var(--accent);">🚀 Push Update</button>
     </div>
-    
 </div>
-    
+
 <div class="tab-bar">
     <div id="tab-home" class="tab-item active" onclick="nav('home', this)">
         <span class="tab-icon">🏠</span>Home
@@ -162,301 +150,157 @@
         <span class="tab-icon">📧</span>Support
     </div>
     <div id="tab-admin" class="tab-item hidden" onclick="nav('admin', this)">
-    <span class="tab-icon">🛠️</span>Admin
+        <span class="tab-icon">🛠️</span>Admin
     </div>
-
 </div>
-
-    
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // DATA LAYER
     const tourData = {
-        'jerusalem': { name: 'Jerusalem', coords: [31.768, 35.213], teaser: 'The spiritual heart of the world.', history: 'Jerusalem has been a sacred site for millennia...', quote: 'Pray for the peace of Jerusalem...', verse: 'Micah 4:2...', img: 'assets/images/jerusalem.jpg', liveUpdates: [] },
-        'capernaum': { name: 'Capernaum', coords: [32.880, 35.575], teaser: 'Jesus\' base of operations in Galilee.', history: 'A thriving fishing village in the 1st century...', quote: 'Built over the foundations of the synagogue...', verse: 'Matthew 4:13...', img: 'assets/images/capernaum.jpg', liveUpdates: [] },
-        'sea-of-galilee': { name: 'Sea of Galilee', coords: [32.82, 35.58], teaser: 'The lake where Jesus walked on water.', history: 'Setting for many recorded miracles...', quote: 'Tranquil teachings and storms.', verse: 'Mark 1:16...', img: 'assets/images/sea-of-galilee.jpg', liveUpdates: [] }
+        'jerusalem': { name: 'Jerusalem', coords: [31.768, 35.213], teaser: 'The heart of the world.', history: 'Jerusalem has been a sacred site for millennia...', verse: 'Micah 4:2', img: 'assets/images/jerusalem.jpg', liveUpdates: [] },
+        'capernaum': { name: 'Capernaum', coords: [32.880, 35.575], teaser: 'Jesus\' base in Galilee.', history: 'A fishing village ruins...', verse: 'Matthew 4:13', img: 'assets/images/capernaum.jpg', liveUpdates: [] },
+        'sea-of-galilee': { name: 'Sea of Galilee', coords: [32.82, 35.58], teaser: 'The freshwater lake.', history: 'Setting for many miracles...', verse: 'Mark 1:16', img: 'assets/images/sea-of-galilee.jpg', liveUpdates: [] }
     };
 
-    let map;
-    let currentLocKey = null;
-    const mainBody = document.getElementById('main-body');
+    let map, currentLocKey = null;
+    let currentUser = null;
+    let liveFeed = [];
 
-    function truncateString(str) {
-        return str.length > 60 ? str.substring(0, 60) + '...' : str;
+    // LOGIN SYSTEM
+    function handleLogin() {
+        const user = document.getElementById('login-user').value.toLowerCase().trim();
+        const pass = document.getElementById('login-pass').value.trim();
+        if (user === "user" && pass === "1234") loginSuccess("user");
+        else if (user === "admin" && pass === "4321") loginSuccess("admin");
+        else alert("Invalid credentials.");
     }
 
-  // --- GLOBAL STATE ---
-let currentUser = null;
-let liveFeed = []; // Holds the "Updates" tab posts
-
-// --- 1. THE NEW LOGIN LOGIC ---
-function handleLogin() {
-    const user = document.getElementById('login-user').value.toLowerCase();
-    const pass = document.getElementById('login-pass').value;
-
-    if (user === "user" && pass === "1234") {
-        loginSuccess("user");
-    } else if (user === "admin" && pass === "4321") {
-        loginSuccess("admin");
-    } else {
-        alert("Invalid credentials. Please try again.");
-    }
-}
-
-function loginSuccess(role) {
-    currentUser = role;
-    // Hide the login screen
-    document.getElementById('login-screen').style.display = 'none';
-    
-    // Show Admin tab ONLY if they are the admin
-    if (role === "admin") {
-        document.getElementById('tab-admin').classList.remove('hidden');
-    }
-    
-    // Start the app at Home
-    nav('home', document.getElementById('tab-home'));
-}
-
-// --- 2. THE NEW NAVIGATION LOGIC (Supports Admin Tab) ---
-function nav(pageId, el, preserveState = false) {
-    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-    const targetPage = document.getElementById('page-' + pageId);
-    if (targetPage) targetPage.classList.remove('hidden');
-    
-    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-    if (el) el.classList.add('active');
-    
-    hideMapPreview();
-
-    // Refresh feed if they click Updates
-    if (pageId === 'feed') renderFeed();
-
-    // Reset Home view if clicking Home tab directly
-    if (pageId === 'home' && !preserveState) {
-        closeItinerary();
+    function loginSuccess(role) {
+        currentUser = role;
+        document.getElementById('login-screen').style.display = 'none';
+        if (role === "admin") document.getElementById('tab-admin').classList.remove('hidden');
+        nav('home', document.getElementById('tab-home'));
     }
 
-    if (pageId === 'map') setTimeout(initMap, 200);
-}
-
-// --- 3. THE ADMIN PUSH LOGIC ---
-function processAdminPush() {
-    const target = document.getElementById('admin-target-loc').value;
-    const title = document.getElementById('admin-title').value;
-    const text = document.getElementById('admin-text').value;
-    const img = document.getElementById('admin-image').value;
-
-    if (!title || !text) { 
-        alert("Please enter a headline and message."); 
-        return; 
+    // NAVIGATION
+    function nav(pageId, el, preserveState = false) {
+        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+        const target = document.getElementById('page-' + pageId);
+        if (target) target.classList.remove('hidden');
+        
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        if (el) el.classList.add('active');
+        
+        hideMapPreview();
+        if (pageId === 'feed') renderFeed();
+        if (pageId === 'home' && !preserveState) closeItinerary();
+        if (pageId === 'map') setTimeout(initMap, 200);
     }
 
-    const updateObj = { 
-        title, text, img, 
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-    };
+    // ADMIN LOGIC
+    function processAdminPush() {
+        const target = document.getElementById('admin-target-loc').value;
+        const title = document.getElementById('admin-title').value;
+        const text = document.getElementById('admin-text').value;
+        const img = document.getElementById('admin-image').value;
+        if (!title || !text) return alert("Fill out headline and message.");
 
-    // Post to the Updates Tab
-    liveFeed.unshift(updateObj);
+        const update = { title, text, img, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
+        liveFeed.unshift(update);
+        if (target !== "all" && tourData[target]) tourData[target].liveUpdates.push(update);
 
-    // If specific location, inject into tourData
-    if (target !== "all" && tourData[target]) {
-        if (!tourData[target].liveUpdates) tourData[target].liveUpdates = [];
-        tourData[target].liveUpdates.push(updateObj);
+        alert("Update pushed successfully!");
+        nav('feed', document.getElementById('tab-feed'));
+        
+        document.getElementById('admin-title').value = '';
+        document.getElementById('admin-text').value = '';
     }
 
-    alert(`Successfully pushed to ${target === 'all' ? 'Updates Feed' : tourData[target].name}`);
-    
-    // Clear inputs
-    document.getElementById('admin-title').value = '';
-    document.getElementById('admin-text').value = '';
-    
-    // Switch to see the result
-    nav('feed', document.getElementById('tab-feed'));
-}
-
-function renderFeed() {
-    const container = document.getElementById('live-feed-container');
-    if (!container) return;
-    container.innerHTML = '';
-    liveFeed.forEach(post => {
-        const postEl = document.createElement('div');
-        postEl.className = 'deep-dive-box';
-        postEl.innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <span class="section-h">Update</span>
-                <span style="font-size:10px; color:#aaa;">${post.time}</span>
+    function renderFeed() {
+        const container = document.getElementById('live-feed-container');
+        if (!container) return;
+        container.innerHTML = liveFeed.map(post => `
+            <div class="deep-dive-box">
+                <div style="display:flex; justify-content:space-between; font-size:10px; color:gray; margin-bottom:10px;">
+                    <span>LIVE UPDATE</span><span>${post.time}</span>
+                </div>
+                ${post.img ? `<img src="${post.img}" style="width:100%; border-radius:10px; margin-bottom:10px;">` : ''}
+                <h4 style="margin:0;">${post.title}</h4>
+                <p style="margin:5px 0 0 0; font-size:14px; line-height:1.4;">${post.text}</p>
             </div>
-            ${post.img ? `<img src="${post.img}" style="width:100%; border-radius:10px; margin-bottom:10px;">` : ''}
-            <h4 style="margin:0;">${post.title}</h4>
-            <p style="margin:5px 0 0 0; font-size:14px;">${post.text}</p>
-        `;
-        container.appendChild(postEl);
-    });
-}  
+        `).join('');
+    }
 
-    
-    // --- HOME STATE LOGIC ---
+    // CORE APP LOGIC
     function openItinerary(tripId) {
-        const listContainer = document.getElementById('itinerary-summary-list');
-        listContainer.innerHTML = '';
-        for (let key in tourData) {
-            const loc = tourData[key];
-            const summaryCard = document.createElement('div');
-            summaryCard.className = 'list-card';
-            summaryCard.onclick = () => openGuide(key);
-            summaryCard.innerHTML = `
-                <img src="${loc.img}" class="list-img">
+        const list = document.getElementById('itinerary-summary-list');
+        list.innerHTML = Object.keys(tourData).map(key => `
+            <div class="list-card" onclick="openGuide('${key}')">
+                <img src="${tourData[key].img}" class="list-img">
                 <div class="list-details">
-                    <h4 style="margin:0;">${loc.name}</h4>
-                    <p class="truncate">${truncateString(loc.teaser)}</p>
+                    <h4 style="margin:0;">${tourData[key].name}</h4>
+                    <p style="font-size:12px; color:gray; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${tourData[key].teaser}</p>
                 </div>
                 <div style="padding-right:10px; color:#ccc;">›</div>
-            `;
-            listContainer.appendChild(summaryCard);
-        }
-        mainBody.classList.remove('guide-active');
-        mainBody.classList.add('itinerary-active');
+            </div>
+        `).join('');
+        document.getElementById('main-body').classList.add('itinerary-active');
     }
 
-    function backToJourneys() { mainBody.classList.remove('itinerary-active'); }
-    function backToItinerary() { 
-        mainBody.classList.remove('guide-active'); 
-        mainBody.classList.add('itinerary-active');
-    }
-    
-    function closeItinerary() { 
-        mainBody.classList.remove('itinerary-active'); 
-        mainBody.classList.remove('guide-active'); 
-    }
-
-    // --- THE CORE GUIDE INJECTION ---
-function openGuide(locKey) {
-    const loc = tourData[locKey];
-    const contentContainer = document.getElementById('deep-dive-content');
-    
-    // Start with static content
-    let html = `
-        <div class="deep-dive-box"><div class="section-h">History</div><p>${loc.history}</p></div>
-        <div class="deep-dive-box"><div class="section-h">Bible Context</div><div class="verse-block">${loc.verse}</div></div>
-    `;
-
-    // ADD THE LIVE INJECTED CONTENT
-    if (loc.liveUpdates && loc.liveUpdates.length > 0) {
-        html += `<h3 style="margin: 20px 0 10px 0;">Live Updates for this Site</h3>`;
-        loc.liveUpdates.forEach(update => {
-            html += `
+    function openGuide(key) {
+        const loc = tourData[key];
+        let html = `<div class="deep-dive-box"><h5>History</h5><p>${loc.history}</p></div><div class="deep-dive-box"><h5>Bible Context</h5><div class="verse-block">${loc.verse}</div></div>`;
+        
+        if (loc.liveUpdates && loc.liveUpdates.length > 0) {
+            html += `<h3 style="margin:20px 0 10px 0;">Live Updates</h3>` + loc.liveUpdates.map(u => `
                 <div class="deep-dive-box" style="border: 2px solid var(--accent);">
-                    <div style="font-size:10px; color:var(--accent); font-weight:bold; margin-bottom:5px;">ADMIN UPDATE • ${update.time}</div>
-                    ${update.img ? `<img src="${update.img}" style="width:100%; border-radius:8px; margin-bottom:10px;">` : ''}
-                    <h4 style="margin:0;">${update.title}</h4>
-                    <p style="font-size:14px; margin-top:5px;">${update.text}</p>
+                    <div style="font-size:10px; color:var(--accent); font-weight:bold; margin-bottom:5px;">ADMIN • ${u.time}</div>
+                    ${u.img ? `<img src="${u.img}" style="width:100%; border-radius:8px; margin-bottom:10px;">` : ''}
+                    <h4 style="margin:0;">${u.title}</h4>
+                    <p style="font-size:14px; margin-top:5px;">${u.text}</p>
                 </div>
-            `;
-        });
+            `).join('');
+        }
+        
+        html += `<button onclick="viewOnMap([${loc.coords}], '${key}')" class="btn-map-nav">📍 View on Map</button>`;
+        document.getElementById('deep-dive-title').innerText = loc.name;
+        document.getElementById('deep-dive-hero').src = loc.img;
+        document.getElementById('deep-dive-content').innerHTML = html;
+        document.getElementById('main-body').classList.add('guide-active');
     }
 
-    html += `<button onclick="viewOnMap([${loc.coords}], '${locKey}')" class="btn-map-nav">📍 View on Map</button>`;
-    
-    document.getElementById('deep-dive-title').innerText = loc.name;
-    document.getElementById('deep-dive-hero').src = loc.img;
-    contentContainer.innerHTML = html;
-    
-    mainBody.classList.add('guide-active');
-}
+    function backToJourneys() { document.getElementById('main-body').classList.remove('itinerary-active'); }
+    function backToItinerary() { document.getElementById('main-body').classList.remove('guide-active'); }
+    function closeItinerary() { document.getElementById('main-body').classList.remove('itinerary-active', 'guide-active'); }
 
-    // --- FIXED MAP TO GUIDE DRILL-DOWN ---
-    function openFullGuideFromMap() {
-        if (!currentLocKey) return;
-        
-        // 1. Prepare the guide data
-        openGuide(currentLocKey);
-        
-        // 2. Navigation switch to Home tab
-        // We pass 'true' to preserveState so the nav function doesn't clear 'guide-active'
-        const homeTab = document.getElementById('tab-home');
-        nav('home', homeTab, true);
-    }
-
-    // --- MAP CORE ---
+    // MAP LOGIC
     function initMap() {
-        if(map) { map.invalidateSize(); return; }
+        if (map) return map.invalidateSize();
         map = L.map('map', { zoomControl: false, tap: true }).setView([32.8, 35.5], 11);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-        
-        for (let key in tourData) {
-            let marker = L.marker(tourData[key].coords).addTo(map);
-            marker.on('click', (e) => { 
+        Object.keys(tourData).forEach(key => {
+            L.marker(tourData[key].coords).addTo(map).on('click', (e) => {
                 L.DomEvent.stopPropagation(e);
-                showMapPreview(key); 
+                showMapPreview(key);
             });
-        }
+        });
         map.on('click', hideMapPreview);
     }
 
     function showMapPreview(key) {
         currentLocKey = key;
-        const loc = tourData[key];
-        document.getElementById('preview-name').innerText = loc.name;
-        document.getElementById('preview-thumb').src = loc.img;
+        document.getElementById('preview-name').innerText = tourData[key].name;
+        document.getElementById('preview-thumb').src = tourData[key].img;
         document.getElementById('map-preview-card').classList.add('show');
-        map.panTo(loc.coords);
+        map.panTo(tourData[key].coords);
     }
 
-    function hideMapPreview() { 
-        document.getElementById('map-preview-card').classList.remove('show'); 
-        // Note: we don't null currentLocKey here so the click on the card can still use it
-    }
+    function hideMapPreview() { document.getElementById('map-preview-card').classList.remove('show'); }
+    function openFullGuideFromMap() { if (currentLocKey) { openGuide(currentLocKey); nav('home', document.getElementById('tab-home'), true); } }
+    function viewOnMap(coords, key) { nav('map', document.getElementById('tab-map')); setTimeout(() => { map.flyTo(coords, 14); showMapPreview(key); }, 300); }
 
-    function viewOnMap(coords, key) {
-        const mapTab = document.getElementById('tab-map');
-        nav('map', mapTab);
-        setTimeout(() => {
-            map.flyTo(coords, 14);
-            showMapPreview(key);
-        }, 300);
-    }
-
-window.onload = () => {
-    // We don't call nav() here because the Login Screen is already visible 
-    // and covers everything until handleLogin() is called.
-    console.log("Discover Israel: Waiting for login...");
-};
-
-// 1. Initialize the feed array at the TOP of your script
-    let liveFeed = [
-    {
-        title: "Welcome to Galilee!",
-        text: "The sun is shining over the lake today. We'll be heading to Capernaum in 15 minutes.",
-        img: "assets/images/group-photo-1.jpg",
-        time: "10:30 AM"
-    }
-];
-
-// 3. The logic to show the posts on the Updates page
-function renderFeed() {
-    const container = document.getElementById('live-feed-container');
-    if (!container) return; // Safety check
-    
-    container.innerHTML = '';
-    
-    liveFeed.forEach(post => {
-        const postEl = document.createElement('div');
-        postEl.className = 'deep-dive-box'; 
-        postEl.style.marginBottom = "15px";
-        postEl.innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <span class="section-h">Live Update</span>
-                <span style="font-size:10px; color:#aaa;">${post.time}</span>
-            </div>
-            ${post.img ? `<img src="${post.img}" style="width:100%; border-radius:10px; margin-bottom:10px;">` : ''}
-            <h4 style="margin:0 0 5px 0; color:var(--primary);">${post.title}</h4>
-            <p style="margin:0; font-size:14px; line-height:1.4;">${post.text}</p>
-        `;
-        container.appendChild(postEl);
-    });
-}
-
+    window.onload = () => console.log("System Ready.");
 </script>
 </body>
 </html>
