@@ -121,15 +121,24 @@
 
     // --- NAVIGATION ---
     function nav(pageId, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-        document.getElementById('page-' + pageId).classList.remove('hidden');
-        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        
-        hideMapPreview();
-        if(pageId === 'home') closeItinerary();
-        if(pageId === 'map') setTimeout(initMap, 200);
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    
+    // Show the clicked page
+    document.getElementById('page-' + pageId).classList.remove('hidden');
+    
+    // Update tab bar colors
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    
+    // If we click 'Home' from the footer, reset the view to the 'Catalog' (My Journeys)
+    if(pageId === 'home') {
+        mainBody.classList.remove('itinerary-active');
+        mainBody.classList.remove('guide-active');
     }
+
+    if(pageId === 'map') setTimeout(initMap, 200);
+}
 
     // --- ITINERARY LOGIC ---
     function openItinerary(tripId) {
@@ -215,11 +224,24 @@
 
     // --- UPDATED MAP DRILL-DOWN LOGIC ---
 function openFullGuideFromMap() {
-    // 1. Check if we actually have a location selected
-    if (!currentLocKey) {
-        console.error("No location selected to open.");
-        return;
-    }
+    if (!currentLocKey) return; // Safety check
+
+    // 1. Get the data for the selected pin
+    const loc = tourData[currentLocKey];
+    
+    // 2. Hide the map preview card so it's gone when we come back to the map later
+    hideMapPreview();
+
+    // 3. Fill the 'Home Page' guide with this location's data
+    // We call the existing openGuide function we built earlier
+    openGuide(currentLocKey);
+
+    // 4. THE CRITICAL FIX: 
+    // We must manually trigger the 'nav' function to switch the user's view 
+    // from the Map tab back to the Home tab where the guide is now visible.
+    nav('home', document.getElementById('tab-home'));
+}
+    
 
     // 2. Hide the map preview card immediately
     hideMapPreview();
